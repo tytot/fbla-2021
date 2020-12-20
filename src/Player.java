@@ -67,8 +67,7 @@ public class Player {
 					{ 0, -1 } }) {
 				int testX = worldPos.x + offset[0];
 				int testY = worldPos.y + offset[1];
-				if (testX >= 0 && testX < map[0].length && testY >= 0
-						&& testY < map.length) {
+				if (isValidBlock(map, testX, testY)) {
 					PlayerBlock testBlock = new PlayerBlock(
 							worldPos.x + offset[0], worldPos.y + offset[1]);
 					if (!map[testY][testX].isSolid()) {
@@ -118,42 +117,30 @@ public class Player {
 			temp.setLocation(pixelPos);
 			if (movement == Movement.LEFT) {
 				int nearestLeftX = worldPos.x * PlayerBlock.SIZE;
-				if (temp.y % PlayerBlock.SIZE == 0) {
-					if (map[worldPos.y][worldPos.x - 1].isSolid()
-							&& temp.x - SPEED_X < nearestLeftX) {
-						temp.setLocation(nearestLeftX, temp.y);
-					} else {
-						temp.translate(-SPEED_X, 0);
-					}
+				int worldPosY2 = worldPos.y + 1;
+				if (temp.y % PlayerBlock.SIZE == 0)
+					worldPosY2 = worldPos.y;
+				if (((isValidBlock(map, worldPos.x - 1, worldPos.y) && map[worldPos.y][worldPos.x - 1].isSolid())
+						|| (isValidBlock(map, worldPos.x - 1, worldPosY2) && map[worldPosY2][worldPos.x - 1].isSolid()))
+						&& temp.x - SPEED_X < nearestLeftX) {
+					temp.setLocation(nearestLeftX, temp.y);
 				} else {
-					if ((map[worldPos.y][worldPos.x - 1].isSolid()
-							|| map[worldPos.y + 1][worldPos.x - 1].isSolid())
-							&& temp.x - SPEED_X < nearestLeftX) {
-						temp.setLocation(nearestLeftX, temp.y);
-					} else {
-						temp.translate(-SPEED_X, 0);
-					}
+					temp.translate(-SPEED_X, 0);
 				}
 			} else if (movement == Movement.RIGHT) {
 				int nearestRightX = PlayerBlock.SIZE
 						* (int) Math.ceil(temp.getX() / PlayerBlock.SIZE);
 				int rightBlockX = (int) Math
 						.ceil(temp.getX() / PlayerBlock.SIZE) + 1;
-				if (temp.y % PlayerBlock.SIZE == 0) {
-					if (map[worldPos.y][rightBlockX].isSolid()
-							&& temp.x + SPEED_X > nearestRightX) {
-						temp.setLocation(nearestRightX, temp.y);
-					} else {
-						temp.translate(SPEED_X, 0);
-					}
+				int worldPosY2 = worldPos.y + 1;
+				if (temp.y % PlayerBlock.SIZE == 0)
+					worldPosY2 = worldPos.y;
+				if (((isValidBlock(map, rightBlockX, worldPos.y) && map[worldPos.y][rightBlockX].isSolid())
+						|| (isValidBlock(map, rightBlockX, worldPosY2) && map[worldPosY2][rightBlockX].isSolid()))
+						&& temp.x + SPEED_X > nearestRightX) {
+					temp.setLocation(nearestRightX, temp.y);
 				} else {
-					if ((map[worldPos.y][rightBlockX].isSolid()
-							|| map[worldPos.y + 1][rightBlockX].isSolid())
-							&& temp.x + SPEED_X > nearestRightX) {
-						temp.setLocation(nearestRightX, temp.y);
-					} else {
-						temp.translate(SPEED_X, 0);
-					}
+					temp.translate(SPEED_X, 0);
 				}
 			} else if (movement == Movement.STILL_LEFT) {
 				int nearestLeftX = worldPos.x * PlayerBlock.SIZE;
@@ -184,30 +171,20 @@ public class Player {
 			int belowBlockY = (int) Math.ceil(temp.getY() / PlayerBlock.SIZE)
 					+ 1;
 			int tempSpeed = speedY;
+			int belowBlockX2 = belowBlockX + 1;
 			if (temp.x % PlayerBlock.SIZE == 0) {
-				if (!map[belowBlockY][belowBlockX].isSolid()) {
-					tempSpeed += ACC_Y;
-				} else if (tempSpeed > 0) {
-					tempSpeed += ACC_Y;
-					if (temp.y + tempSpeed >= (belowBlockY - 1)
-							* PlayerBlock.SIZE) {
-						tempSpeed = 0;
-						temp.setLocation(temp.x,
-								(belowBlockY - 1) * PlayerBlock.SIZE);
-					}
-				}
-			} else {
-				if (!(map[belowBlockY][belowBlockX].isSolid()
-						|| map[belowBlockY][belowBlockX + 1].isSolid())) {
-					tempSpeed += ACC_Y;
-				} else if (tempSpeed > 0) {
-					tempSpeed += ACC_Y;
-					if (temp.y + tempSpeed >= (belowBlockY - 1)
-							* PlayerBlock.SIZE) {
-						tempSpeed = 0;
-						temp.setLocation(temp.x,
-								(belowBlockY - 1) * PlayerBlock.SIZE);
-					}
+				belowBlockX2 = belowBlockX;
+			}
+			if (!((isValidBlock(map, belowBlockX, belowBlockY) && map[belowBlockY][belowBlockX].isSolid())
+					|| (isValidBlock(map, belowBlockX2, belowBlockY) && map[belowBlockY][belowBlockX2].isSolid()))) {
+				tempSpeed += ACC_Y;
+			} else if (tempSpeed > 0) {
+				tempSpeed += ACC_Y;
+				if (temp.y + tempSpeed >= (belowBlockY - 1)
+						* PlayerBlock.SIZE) {
+					tempSpeed = 0;
+					temp.setLocation(temp.x,
+							(belowBlockY - 1) * PlayerBlock.SIZE);
 				}
 			}
 			if (tempSpeed != 0) {
@@ -230,5 +207,9 @@ public class Player {
 			block.getWorldCoords().setLocation(pixelPos.x / PlayerBlock.SIZE,
 					pixelPos.y / PlayerBlock.SIZE);
 		}
+	}
+	
+	private boolean isValidBlock(MapBlock[][] map, int width, int height) {
+		return height >= 0 && height < map.length && width >= 0 && width < map[0].length;
 	}
 }
