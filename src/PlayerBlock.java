@@ -32,6 +32,10 @@ public class PlayerBlock {
 	public Color getColor() {
 		return color;
 	}
+	
+	public void setColor(Color color) {
+		this.color = color;
+	}
 
 	public int hashCode() {
 		return worldCoords.hashCode();

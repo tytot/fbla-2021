@@ -12,8 +12,17 @@ public class Player {
 
 	private ArrayList<PlayerBlock> playerBlocks = new ArrayList<PlayerBlock>();
 	private ArrayList<PlayerBlock> buildBlocks = new ArrayList<PlayerBlock>();
+	private ArrayList<PlayerBlock>[] splitBlocks = new ArrayList[2];
 	private PlayerBlock highlightedBlock = null;
-	private boolean building = false;
+	private Point[] splitLine = null;
+	private int chosenSide = -1;
+	
+	public static final int NORMAL = 0;
+	public static final int BUILDING = 1;
+	public static final int SPLITTING = 2;
+	public static final int CHOOSING = 3;
+	
+	private int state = NORMAL;
 
 	public Movement getMovement() {
 		return movement;
@@ -30,13 +39,25 @@ public class Player {
 	public ArrayList<PlayerBlock> getBuildBlocks() {
 		return buildBlocks;
 	}
+	
+	public ArrayList<PlayerBlock> getSplitBlocks(int side) {
+		return splitBlocks[side];
+	}
 
 	public PlayerBlock getHighlightedBlock() {
 		return highlightedBlock;
 	}
+	
+	public Point[] getSplitLine() {
+		return splitLine;
+	}
+	
+	public int getChosenSide() {
+		return chosenSide;
+	}
 
-	public boolean isBuilding() {
-		return building;
+	public int getState() {
+		return state;
 	}
 
 	public void setMovement(Movement movement) {
@@ -48,7 +69,7 @@ public class Player {
 	}
 
 	public void highlightBlock(int mouseX, int mouseY) {
-		PlayerBlock block = new PlayerBlock(mouseX, mouseY, Color.PINK);
+		PlayerBlock block = new PlayerBlock(mouseX / PlayerBlock.SIZE, mouseY / PlayerBlock.SIZE, Color.PINK);
 		// no idea why .contains() doesn't work >:(
 		for (PlayerBlock bBlock : buildBlocks) {
 			if (bBlock.equals(block)) {
@@ -60,7 +81,7 @@ public class Player {
 	}
 
 	public void startBuilding(MapBlock[][] map) {
-		building = true;
+		state = BUILDING;
 		for (PlayerBlock block : playerBlocks) {
 			Point worldPos = block.getWorldCoords();
 			for (int[] offset : new int[][] { { 1, 0 }, { 0, 1 }, { -1, 0 },
@@ -95,7 +116,109 @@ public class Player {
 	public void stopBuilding() {
 		buildBlocks.clear();
 		highlightedBlock = null;
-		building = false;
+		state = NORMAL;
+	}
+	
+	public void highlightSplitLine(MapBlock[][] map, int mouseX, int mouseY) {
+		int xLine = (int) (Math.round((double) mouseX / PlayerBlock.SIZE));
+		int yLine = (int) (Math.round((double) mouseY / PlayerBlock.SIZE));
+		Point[] xSplitLine = null, ySplitLine = null;
+		int startY = 0;
+		while (startY < map.length && (!playerBlockAt(xLine - 1, startY) || !playerBlockAt(xLine, startY)))
+			startY++;
+		if (startY < map.length) {
+			int endY = startY + 1;
+			while (playerBlockAt(xLine - 1, endY) && playerBlockAt(xLine, endY)) {
+				endY++;
+			}
+			xSplitLine = new Point[] { new Point(xLine, startY), new Point(xLine, endY) };
+		}
+		int startX = 0;
+		while (startX < map[0].length && (!playerBlockAt(startX, yLine - 1) || !playerBlockAt(startX, yLine)))
+			startX++;
+		if (startX < map[0].length) {
+			int endX = startX + 1;
+			while (playerBlockAt(endX, yLine - 1) && playerBlockAt(endX, yLine)) {
+				endX++;
+			}
+			ySplitLine = new Point[] { new Point(startX, yLine), new Point(endX, yLine) };
+		}
+		if (xSplitLine == null) {
+			if (ySplitLine != null)
+				splitLine = ySplitLine;
+			else
+				splitLine = null;
+		} else if (ySplitLine == null) {
+			if (xSplitLine != null)
+				splitLine = xSplitLine;
+		} else {
+			if (Math.abs(mouseX - xLine * PlayerBlock.SIZE) <= Math.abs(mouseY - yLine * PlayerBlock.SIZE))
+				splitLine = xSplitLine;
+			else
+				splitLine = ySplitLine;
+		}
+	}
+	
+	public void startSplitting() {
+		state = SPLITTING;
+	}
+	
+	public void splitIntoSides() {
+		state = CHOOSING;
+		splitBlocks[0] = new ArrayList<PlayerBlock>();
+		splitBlocks[1] = new ArrayList<PlayerBlock>();
+		if (splitLine[0].x == splitLine[1].x) {
+			int xLine = splitLine[0].x;
+			for (PlayerBlock pBlock : playerBlocks) {
+				if (pBlock.getWorldCoords().x < xLine)
+					splitBlocks[0].add(pBlock);
+				else
+					splitBlocks[1].add(pBlock);
+			}
+		} else {
+			int yLine = splitLine[0].y;
+			for (PlayerBlock pBlock : playerBlocks) {
+				if (pBlock.getWorldCoords().y < yLine)
+					splitBlocks[0].add(pBlock);
+				else
+					splitBlocks[1].add(pBlock);
+			}
+		}
+		splitLine = null;
+	}
+	
+	public void setChosenSide(int mouseX, int mouseY) {
+		PlayerBlock testBlock = new PlayerBlock(mouseX / PlayerBlock.SIZE, mouseY / PlayerBlock.SIZE);
+		for (PlayerBlock pBlock : splitBlocks[0]) {
+			// no idea why .contains() doesn't work >:(
+			if (pBlock.equals(testBlock)) {
+				chosenSide = 0;
+				return;
+			}
+		}
+		for (PlayerBlock pBlock : splitBlocks[1]) {
+			// no idea why .contains() doesn't work >:(
+			if (pBlock.equals(testBlock)) {
+				chosenSide = 1;
+				return;
+			}
+		}
+		chosenSide = -1;
+	}
+	
+	public ArrayList<PlayerBlock> chooseSide(int side) {
+		// returns blocks to be made solid
+		state = NORMAL;
+		chosenSide = -1;
+		playerBlocks = splitBlocks[side];
+		ArrayList<PlayerBlock> output;
+		if (side == 1)
+			output = (ArrayList<PlayerBlock>) splitBlocks[0].clone();
+		else
+			output = (ArrayList<PlayerBlock>) splitBlocks[1].clone();
+		splitBlocks[0] = null;
+		splitBlocks[1] = null;
+		return output;
 	}
 
 	public void move(MapBlock[][] map) {
@@ -211,5 +334,14 @@ public class Player {
 	
 	private boolean isValidBlock(MapBlock[][] map, int width, int height) {
 		return height >= 0 && height < map.length && width >= 0 && width < map[0].length;
+	}
+	
+	private boolean playerBlockAt(int worldX, int worldY) {
+		for (PlayerBlock pBlock : playerBlocks) {
+			Point worldCoords = pBlock.getWorldCoords();
+			if (worldCoords.x == worldX && worldCoords.y == worldY)
+				return true;
+		}
+		return false;
 	}
 }

@@ -1,5 +1,3 @@
-
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -9,9 +7,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.List;
 
 public class Level extends JPanel implements KeyListener, MouseListener, MouseMotionListener, ActionListener {
@@ -71,11 +66,30 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 			Point pixelCoords = pBlock.getPixelCoords();
 			g2.fillRect(pixelCoords.x, pixelCoords.y, PlayerBlock.SIZE, PlayerBlock.SIZE);
 		}
-		PlayerBlock highlightedBlock = player.getHighlightedBlock();
-		if (highlightedBlock != null) {
-			Point highlightedPoint = highlightedBlock.getPixelCoords();
-			g2.setColor(Color.PINK);
-			g2.fillRect(highlightedPoint.x, highlightedPoint.y, PlayerBlock.SIZE, PlayerBlock.SIZE);
+		int state = player.getState();
+		if (state == Player.BUILDING) {
+			PlayerBlock highlightedBlock = player.getHighlightedBlock();
+			if (highlightedBlock != null) {
+				Point highlightedPoint = highlightedBlock.getPixelCoords();
+				g2.setColor(Color.PINK);
+				g2.fillRect(highlightedPoint.x, highlightedPoint.y, PlayerBlock.SIZE, PlayerBlock.SIZE);
+			}
+		} else if (state == Player.SPLITTING) {
+			Point[] splitLine = player.getSplitLine();
+			if (splitLine != null) {
+				g2.setColor(Color.WHITE);
+				g2.setStroke(new BasicStroke(4));
+				g2.drawLine(splitLine[0].x * PlayerBlock.SIZE, splitLine[0].y * PlayerBlock.SIZE, splitLine[1].x * PlayerBlock.SIZE, splitLine[1].y * PlayerBlock.SIZE);
+			}
+		} else if (state == Player.CHOOSING) {
+			int chosenSide = player.getChosenSide();
+			if (chosenSide != -1) {
+				g2.setColor(Color.PINK);
+				for (PlayerBlock pBlock : player.getSplitBlocks(chosenSide)) {
+					Point pixelCoords = pBlock.getPixelCoords();
+					g2.fillRect(pixelCoords.x, pixelCoords.y, PlayerBlock.SIZE, PlayerBlock.SIZE);
+				}
+			}
 		}
 		timer.start();
 	}
@@ -92,7 +106,7 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 	}
 
 	public void keyPressed(KeyEvent e) {
-		if (!player.isBuilding()) {
+		if (player.getState() == Player.NORMAL) {
 			if (e.getKeyCode() == KeyEvent.VK_RIGHT || e.getKeyCode() == KeyEvent.VK_D) {
 				player.setMovement(Movement.RIGHT);
 			} else if (e.getKeyCode() == KeyEvent.VK_LEFT || e.getKeyCode() == KeyEvent.VK_A) {
@@ -103,7 +117,7 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 
 	@Override
 	public void keyReleased(KeyEvent e) {
-		if (!player.isBuilding()) {
+		if (player.getState() == Player.NORMAL) {
 			if (e.getKeyCode() == KeyEvent.VK_RIGHT || e.getKeyCode() == KeyEvent.VK_D) {
 				player.setMovement(Movement.STILL_RIGHT);
 			} else if (e.getKeyCode() == KeyEvent.VK_LEFT || e.getKeyCode() == KeyEvent.VK_A) {
@@ -121,15 +135,32 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 
 	@Override
 	public void mouseClicked(MouseEvent arg0) {
-		if (!player.isBuilding()) {
+		int state = player.getState();
+		if (state == Player.NORMAL) {
 			if (SwingUtilities.isRightMouseButton(arg0)) {
 				player.startBuilding(map);
+			} else if (SwingUtilities.isMiddleMouseButton(arg0)) {
+				player.startSplitting();
 			}
-		} else if (SwingUtilities.isLeftMouseButton(arg0)) {
+		} else if (state == Player.BUILDING) {
 			if (player.getHighlightedBlock() != null) {
 				player.confirmBuild();
 			}
+		} else if (state == Player.SPLITTING) {
+			if (player.getSplitLine() != null) {
+				player.splitIntoSides();
+			}
+		} else if (state == Player.CHOOSING) {
+			int chosenSide = player.getChosenSide();
+			if (chosenSide != -1) {
+				ArrayList<PlayerBlock> abandonedBlocks = player.chooseSide(chosenSide);
+				for (PlayerBlock pBlock : abandonedBlocks) {
+					Point worldCoords = pBlock.getWorldCoords();
+					map[worldCoords.y][worldCoords.x] = new CryingPlayerBlock();
+				}
+			}
 		}
+		mouseAction(arg0);
 	}
 
 	@Override
@@ -164,17 +195,25 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 
 	@Override
 	public void mouseMoved(MouseEvent arg0) {
-		if (player.isBuilding()) {
-			int x = (arg0.getX() - insets.left) / PlayerBlock.SIZE;
-			int y = (arg0.getY() - insets.top) / PlayerBlock.SIZE;
+		mouseAction(arg0);
+	}
+	
+	private void mouseAction(MouseEvent e) {
+		int x = e.getX() - insets.left;
+		int y = e.getY() - insets.top;
+		int state = player.getState();
+		if (state == Player.BUILDING) {
 			player.highlightBlock(x, y);
+		} else if (state == Player.SPLITTING) {
+			player.highlightSplitLine(map, x, y);
+		} else if (state == Player.CHOOSING) {
+			player.setChosenSide(x, y);
 		}
 	}
 
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
 		player.move(map);
-		
 		repaint();
 	}
 
