@@ -16,7 +16,7 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 	private MapBlock[][] map;
 	private JLabel[][] powerUps;
 	private Player player = new Player();
-
+	//test
 	Level(String filePath) {
 		setLayout(null);
 		try {
