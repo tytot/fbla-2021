@@ -123,6 +123,15 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 		g2.setFont(new Font("Serif", Font.BOLD, 50));
 		g2.drawString("Reset", 100, 50);
 
+		for(int i = 0; i < storedPowerUps.length; i++) {
+			if (i == 0) {
+				g2.drawString("G x " + storedPowerUps[i], 400, 50);
+			} else if (i == 1) {
+				g2.drawString("S x " + storedPowerUps[i], 600, 50);
+			} else if (i == 2) {
+				g2.drawString("M x " + storedPowerUps[i], 800, 50);
+			}
+		}
 
 		ArrayList<PlayerBlock> pBlocks = player.getBlocks();
 		for (PlayerBlock pBlock : pBlocks) {
