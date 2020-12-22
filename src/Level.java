@@ -17,7 +17,9 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 	private MapBlock[][] map, startMap;
 	private ArrayList<Point> startingPositions = new ArrayList<Point>();
 	private ArrayList<Point> goalBlocks = new ArrayList<Point>();
-	private JLabel[][] powerUps;
+    private JLabel[][] powerUps;
+    private JLabel reset;
+	private ArrayList<Point> powerUpPos = new ArrayList<Point>();
 	private int[] storedPowerUps = { 0, 0, 0 };
 	private Player player = new Player();
 
@@ -74,6 +76,36 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		reset = new JLabel("Reset");
+		reset.addMouseListener(new MouseListener() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				if(e.getComponent() == reset) {
+					resetLevel();
+				}
+			}
+
+			@Override
+			public void mousePressed(MouseEvent e) {
+
+			}
+
+			@Override
+			public void mouseReleased(MouseEvent e) {
+
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent e) {
+
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e) {
+
+			}
+		});
+		add(reset);
 	}
 
 	public void paintComponent(Graphics g) {
@@ -86,6 +118,12 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 				g2.fillRect(j * MapBlock.SIZE, i * MapBlock.SIZE, MapBlock.SIZE, MapBlock.SIZE);
 			}
 		}
+
+		g2.setColor(Color.white);
+		g2.setFont(new Font("Serif", Font.BOLD, 50));
+		g2.drawString("Reset", 100, 50);
+
+
 		ArrayList<PlayerBlock> pBlocks = player.getBlocks();
 		for (PlayerBlock pBlock : pBlocks) {
 			g2.setColor(Color.RED);
@@ -318,8 +356,7 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 	}
 
 	private static void runGame() {
-		Level level = new Level("levels/level1.txt");
-
+		Level level = new Level("levels/level3.txt");
 		JFrame frame = new JFrame("Level 1");
 		frame.addKeyListener(level);
 		frame.addMouseListener(level);
