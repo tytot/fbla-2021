@@ -59,6 +59,10 @@ local.properties
 # Typically, this file would be tracked if it contains build/dependency configurations:
 #.project
 
-#other
-.idea/*.*
-.iml
+# User-specific stuff
+.idea/**/.name
+.idea/**/misc.xml
+.idea/**/modules.xml
+.idea/**/vcs.xml
+.idea/**/workspace.xml
+out/
