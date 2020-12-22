@@ -235,6 +235,10 @@ public class Player {
             splitBlocks[0] = blocksConnectedTo(new PlayerBlock(splitLine[0].x, splitLine[0].y - 1));
             splitBlocks[1] = blocksConnectedTo(new PlayerBlock(splitLine[0].x, splitLine[0].y));
         }
+		if (splitBlocks[0].size() + splitBlocks[1].size() > playerBlocks.size()) {
+			splitBlocks[0] = playerBlocks;
+			splitBlocks[1].clear();
+		}
         splitLine = null;
     }
 
