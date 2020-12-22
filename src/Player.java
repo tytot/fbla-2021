@@ -320,7 +320,6 @@ public class Player {
 					PlayerBlock newPBlock = new PlayerBlock(testX, testY, Color.RED);
 					if (map[testY][testX] instanceof CryingPlayerBlock && !mergedBlocks.contains(newPBlock)) {
 						mergedBlocks.add(newPBlock);
-						playerBlocks.add(newPBlock);
 						queue.offer(new Point(testX, testY));
 					}
 				}

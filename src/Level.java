@@ -17,12 +17,10 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 	private MapBlock[][] map, startMap;
 	private ArrayList<Point> startingPositions = new ArrayList<Point>();
 	private ArrayList<Point> goalBlocks = new ArrayList<Point>();
-    private JLabel[][] powerUps;
-	private ArrayList<Point> powerUpPos = new ArrayList<Point>();
+	private JLabel[][] powerUps;
 	private int[] storedPowerUps = { 0, 0, 0 };
-	
 	private Player player = new Player();
-	
+
 //	private final HashMap<Point, Rectangle> sides = new HashMap<Point, Rectangle>() {
 //		{
 //			put(new Point(-1, -1), new Rectangle(0, 0, PlayerBlock.SIZE / 5, PlayerBlock.SIZE / 5));
@@ -51,32 +49,15 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 						map[i][j] = new SpaceBlock();
 					} else if (block == 'B') {
 						map[i][j] = new SolidBlock();
-					} else if(block == 'G') {
+					} else if (block == 'G') {
 						map[i][j] = new GoalBlock();
 						goalBlocks.add(new Point(j, i));
-					}
-					else if (block == 'R') {
-						PowerUp p = new RedPowerUp();
-						map[i][j] = p;
-						powerUpPos.add(new Point(j, i));
-						ImageIcon imgIcon = new ImageIcon(new File(p.imagePath()).toURI().toURL());
-						imgIcon.setImage(imgIcon.getImage().getScaledInstance(MapBlock.SIZE, MapBlock.SIZE,
-								Image.SCALE_DEFAULT));
-						JLabel label = new JLabel(imgIcon);
-						powerUps[i][j] = label;
-						label.setBounds(j * MapBlock.SIZE, i * MapBlock.SIZE, MapBlock.SIZE, MapBlock.SIZE);
-						add(label);
+					} else if (block == 'R') {
+						map[i][j] = new GrowPowerUp();
 					} else if (block == 'S') {
-						PowerUp p = new SplitPowerUp();
-						map[i][j] = p;
-						powerUpPos.add(new Point(j, i));
-						ImageIcon imgIcon = new ImageIcon(new File(p.imagePath()).toURI().toURL());
-						imgIcon.setImage(imgIcon.getImage().getScaledInstance(MapBlock.SIZE, MapBlock.SIZE,
-								Image.SCALE_DEFAULT));
-						JLabel label = new JLabel(imgIcon);
-						powerUps[i][j] = label;
-						label.setBounds(j * MapBlock.SIZE, i * MapBlock.SIZE, MapBlock.SIZE, MapBlock.SIZE);
-						add(label);
+						map[i][j] = new SplitPowerUp();
+					} else if (block == 'M') {
+						map[i][j] = new MergePowerUp();
 					} else if (block == 'P') {
 						map[i][j] = new SpaceBlock();
 						player.addBlock(j, i, Color.RED);
@@ -84,6 +65,7 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 					}
 				}
 			}
+			resetPowerUps();
 			for (int i = 0; i < map.length; i++) {
 				for (int j = 0; j < map[i].length; j++) {
 					startMap[i][j] = map[i][j];
@@ -155,9 +137,13 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 				player.setMovement(Movement.LEFT);
 			} else if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
 				ArrayList<PlayerBlock> mergedBlocks = player.merge(map);
-				for (PlayerBlock pBlock : mergedBlocks) {
-					Point worldCoords = pBlock.getWorldCoords();
-					map[worldCoords.y][worldCoords.x] = new SpaceBlock();
+				if (mergedBlocks.size() > 0 && storedPowerUps[2] > 0) {
+					for (PlayerBlock pBlock : mergedBlocks) {
+						Point worldCoords = pBlock.getWorldCoords();
+						map[worldCoords.y][worldCoords.x] = new SpaceBlock();
+						player.addBlock(worldCoords.x, worldCoords.y, Color.RED);
+					}
+					storedPowerUps[2]--;
 				}
 			}
 		}
@@ -222,24 +208,45 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 			}
 		}
 		player.resetPositions(startingPositions);
+		resetPowerUps();
+	}
+
+	private void resetPowerUps() {
+		try {
+			for (int i = 0; i < map.length; i++) {
+				for (int j = 0; j < map[0].length; j++) {
+					if (map[i][j] instanceof PowerUp) {
+						ImageIcon imgIcon = new ImageIcon(new File(((PowerUp) map[i][j]).imagePath()).toURI().toURL());
+						imgIcon.setImage(
+								imgIcon.getImage().getScaledInstance(MapBlock.SIZE, MapBlock.SIZE, Image.SCALE_DEFAULT));
+						JLabel label = new JLabel(imgIcon);
+						powerUps[i][j] = label;
+						label.setBounds(j * MapBlock.SIZE, i * MapBlock.SIZE, MapBlock.SIZE, MapBlock.SIZE);
+						add(label);
+					}
+				}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		storedPowerUps = new int[] {0,0,0};
 	}
 
 	public void pickUpPowerUp() {
 		for (int i = 0; i < player.getBlocks().size(); i++) {
-			for (int j = 0; j < powerUpPos.size(); j++) {
-				PlayerBlock pBlock = player.getBlocks().get(i);
-				Point check = new Point((int) (Math.round(pBlock.getPixelCoords().getX() / 50)), pBlock.getWorldCoords().y);
-				if (check.equals(powerUpPos.get(j))) {
-					Point pos = powerUpPos.get(j);
-					if (map[pos.y][pos.x] instanceof RedPowerUp) {
-						remove(powerUps[pos.y][pos.x]);
-						storedPowerUps[0]++;
-					} else if (map[pos.y][pos.x] instanceof SplitPowerUp) {
-						remove(powerUps[pos.y][pos.x]);
-						storedPowerUps[1]++;
-					}
-					map[pos.y][pos.x] = new SpaceBlock();
+			PlayerBlock pBlock = player.getBlocks().get(i);
+			Point check = new Point((int) (Math.round(pBlock.getPixelCoords().getX() / MapBlock.SIZE)),
+					pBlock.getWorldCoords().y);
+			if (powerUps[check.y][check.x] != null) {
+				if (map[check.y][check.x] instanceof GrowPowerUp) {
+					storedPowerUps[0]++;
+				} else if (map[check.y][check.x] instanceof SplitPowerUp) {
+					storedPowerUps[1]++;
+				} else if (map[check.y][check.x] instanceof MergePowerUp) {
+					storedPowerUps[2]++;
 				}
+				remove(powerUps[check.y][check.x]);
+				powerUps[check.y][check.x] = null;
 			}
 		}
 	}
@@ -299,7 +306,7 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 		if (player.isOutOfBounds(map)) {
 			resetLevel();
 		}
-		if(player.reachedGoal(goalBlocks, map)) {
+		if (player.reachedGoal(goalBlocks, map)) {
 			System.out.println("checkpoint");
 		}
 		repaint();
