@@ -17,7 +17,10 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 	private MapBlock[][] map, startMap;
 	private ArrayList<Point> startingPositions = new ArrayList<Point>();
 	private ArrayList<Point> goalBlocks = new ArrayList<Point>();
-	private JLabel[][] powerUps;
+    private JLabel[][] powerUps;
+	private ArrayList<Point> powerUpPos = new ArrayList<Point>();
+	private int[] storedPowerUps = { 0, 0, 0 };
+	
 	private Player player = new Player();
 	
 //	private final HashMap<Point, Rectangle> sides = new HashMap<Point, Rectangle>() {
@@ -55,6 +58,18 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 					else if (block == 'R') {
 						PowerUp p = new RedPowerUp();
 						map[i][j] = p;
+						powerUpPos.add(new Point(j, i));
+						ImageIcon imgIcon = new ImageIcon(new File(p.imagePath()).toURI().toURL());
+						imgIcon.setImage(imgIcon.getImage().getScaledInstance(MapBlock.SIZE, MapBlock.SIZE,
+								Image.SCALE_DEFAULT));
+						JLabel label = new JLabel(imgIcon);
+						powerUps[i][j] = label;
+						label.setBounds(j * MapBlock.SIZE, i * MapBlock.SIZE, MapBlock.SIZE, MapBlock.SIZE);
+						add(label);
+					} else if (block == 'S') {
+						PowerUp p = new SplitPowerUp();
+						map[i][j] = p;
+						powerUpPos.add(new Point(j, i));
 						ImageIcon imgIcon = new ImageIcon(new File(p.imagePath()).toURI().toURL());
 						imgIcon.setImage(imgIcon.getImage().getScaledInstance(MapBlock.SIZE, MapBlock.SIZE,
 								Image.SCALE_DEFAULT));
@@ -74,7 +89,6 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 					startMap[i][j] = map[i][j];
 				}
 			}
-			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -157,7 +171,7 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 			} else if (e.getKeyCode() == KeyEvent.VK_LEFT || e.getKeyCode() == KeyEvent.VK_A) {
 				player.setMovement(Movement.STILL_LEFT);
 			} else if (e.getKeyCode() == KeyEvent.VK_SPACE && player.getMovement() == Movement.STILL
-					&& player.isFalling()) {
+					&& !player.isFalling() && storedPowerUps[0] > 0) {
 				player.startBuilding(map);
 			}
 		}
@@ -172,18 +186,20 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 		if (player.getMovement() == Movement.STILL && player.isFalling()) {
 			int state = player.getState();
 			if (state == Player.NORMAL) {
-				if (SwingUtilities.isRightMouseButton(arg0)) {
+				if (SwingUtilities.isRightMouseButton(arg0) && storedPowerUps[0] > 0) {
 					player.startBuilding(map);
-				} else if (SwingUtilities.isMiddleMouseButton(arg0)) {
+				} else if (SwingUtilities.isMiddleMouseButton(arg0) && storedPowerUps[1] > 0) {
 					player.startSplitting();
 				}
 			} else if (state == Player.BUILDING) {
 				if (player.getHighlightedBlock() != null) {
 					player.confirmBuild();
+					storedPowerUps[0]--;
 				}
 			} else if (state == Player.SPLITTING) {
 				if (player.getSplitLine() != null) {
 					player.splitIntoSides();
+					storedPowerUps[1]--;
 				}
 			} else if (state == Player.CHOOSING) {
 				int chosenSide = player.getChosenSide();
@@ -198,7 +214,7 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 			mouseAction(arg0);
 		}
 	}
-	
+
 	public void resetLevel() {
 		for (int i = 0; i < startMap.length; i++) {
 			for (int j = 0; j < startMap[i].length; j++) {
@@ -206,6 +222,26 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 			}
 		}
 		player.resetPositions(startingPositions);
+	}
+
+	public void pickUpPowerUp() {
+		for (int i = 0; i < player.getBlocks().size(); i++) {
+			for (int j = 0; j < powerUpPos.size(); j++) {
+				PlayerBlock pBlock = player.getBlocks().get(i);
+				Point check = new Point((int) (Math.round(pBlock.getPixelCoords().getX() / 50)), pBlock.getWorldCoords().y);
+				if (check.equals(powerUpPos.get(j))) {
+					Point pos = powerUpPos.get(j);
+					if (map[pos.y][pos.x] instanceof RedPowerUp) {
+						remove(powerUps[pos.y][pos.x]);
+						storedPowerUps[0]++;
+					} else if (map[pos.y][pos.x] instanceof SplitPowerUp) {
+						remove(powerUps[pos.y][pos.x]);
+						storedPowerUps[1]++;
+					}
+					map[pos.y][pos.x] = new SpaceBlock();
+				}
+			}
+		}
 	}
 
 	@Override
@@ -259,6 +295,7 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
 		player.move(map);
+		pickUpPowerUp();
 		if (player.isOutOfBounds(map)) {
 			resetLevel();
 		}
