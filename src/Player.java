@@ -454,14 +454,19 @@ public class Player {
 		movement = Movement.STILL;
 	}
 
-	public boolean reachedGoal(ArrayList<Point> goalCoord) {
+	public boolean reachedGoal(ArrayList<Point> goalCoord, MapBlock[][] map) {
 		boolean finished = true;
 		ArrayList<PlayerBlock> bottomBlocks = getBottomBlocks(playerBlocks);
-		for(int i=0; i < bottomBlocks.size(); i++) {
-			System.out.println(bottomBlocks.get(i).getWorldCoords().getY() - 1 + ", " + goalCoord.get(i).getY());
-			if(!(bottomBlocks.get(i).getWorldCoords().getY() - 1 == goalCoord.get(i).getY())) {
+		for(int i=0; i < goalCoord.size(); i++) {
+			PlayerBlock goal = new PlayerBlock( (int) goalCoord.get(i).getX(),  (int) goalCoord.get(i).getY() - 1);
+			if(!playerBlocks.contains(goal)) {
 				finished = false;
-				break;
+			}
+
+		}
+		for(int i=0; i < bottomBlocks.size(); i++) {
+			if(!((map[(int) bottomBlocks.get(i).getWorldCoords().getY()][(int) bottomBlocks.get(i).getWorldCoords().getX() + 1]) instanceof SpaceBlock)) {
+				finished = false;
 			}
 		}
 
@@ -470,14 +475,14 @@ public class Player {
 
 	public ArrayList<PlayerBlock> getBottomBlocks(ArrayList<PlayerBlock> playerBlock) {
 		ArrayList<PlayerBlock> bottomBlocks = new ArrayList<PlayerBlock>();
-		double min = 1000.0;
+		double max = 0;
 		for(PlayerBlock block: playerBlock) {
-			if(block.getWorldCoords().getY() < min) {
-				min = block.getWorldCoords().getY();
-				bottomBlocks.clear();
-
+			if(block.getWorldCoords().getY() > max) {
+				max = block.getWorldCoords().getY();
 			}
-			if (block.getWorldCoords().getY() == min) {
+		}
+		for(PlayerBlock block: playerBlock) {
+			if(block.getWorldCoords().getY() == max) {
 				bottomBlocks.add(block);
 			}
 		}

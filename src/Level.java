@@ -36,7 +36,7 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 						map[i][j] = new SolidBlock();
 					} else if(block == 'G') {
 						map[i][j] = new GoalBlock();
-						goalBlocks.add(new Point(i, j));
+						goalBlocks.add(new Point(j, i));
 					}
 					else if (block == 'R') {
 						PowerUp p = new RedPowerUp();
@@ -239,7 +239,7 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 		if (player.isOutOfBounds(map)) {
 			resetLevel();
 		}
-		if(player.reachedGoal(goalBlocks)) {
+		if(player.reachedGoal(goalBlocks, map)) {
 			System.out.println("checkpoint");
 		}
 		repaint();
