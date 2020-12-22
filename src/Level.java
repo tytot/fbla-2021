@@ -15,6 +15,7 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 
 	private MapBlock[][] map, startMap;
 	private ArrayList<Point> startingPositions = new ArrayList<Point>();
+	private ArrayList<Point> goalBlocks = new ArrayList<Point>();
 	private JLabel[][] powerUps;
 	private Player player = new Player();
 
@@ -33,7 +34,11 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 						map[i][j] = new SpaceBlock();
 					} else if (block == 'B') {
 						map[i][j] = new SolidBlock();
-					} else if (block == 'R') {
+					} else if(block == 'G') {
+						map[i][j] = new GoalBlock();
+						goalBlocks.add(new Point(i, j));
+					}
+					else if (block == 'R') {
 						PowerUp p = new RedPowerUp();
 						map[i][j] = p;
 						ImageIcon imgIcon = new ImageIcon(new File(p.imagePath()).toURI().toURL());
@@ -233,6 +238,9 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 		player.move(map);
 		if (player.isOutOfBounds(map)) {
 			resetLevel();
+		}
+		if(player.reachedGoal(goalBlocks)) {
+			System.out.println("checkpoint");
 		}
 		repaint();
 	}

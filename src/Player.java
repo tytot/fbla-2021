@@ -1,6 +1,7 @@
 
 import java.awt.Color;
 import java.awt.Point;
+
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -452,4 +453,38 @@ public class Player {
 		}
 		movement = Movement.STILL;
 	}
+
+	public boolean reachedGoal(ArrayList<Point> goalCoord) {
+		boolean finished = true;
+		ArrayList<PlayerBlock> bottomBlocks = getBottomBlocks(playerBlocks);
+		for(int i=0; i < bottomBlocks.size(); i++) {
+			System.out.println(bottomBlocks.get(i).getWorldCoords().getY() - 1 + ", " + goalCoord.get(i).getY());
+			if(!(bottomBlocks.get(i).getWorldCoords().getY() - 1 == goalCoord.get(i).getY())) {
+				finished = false;
+				break;
+			}
+		}
+
+		return finished;
+	}
+
+	public ArrayList<PlayerBlock> getBottomBlocks(ArrayList<PlayerBlock> playerBlock) {
+		ArrayList<PlayerBlock> bottomBlocks = new ArrayList<PlayerBlock>();
+		double min = 1000.0;
+		for(PlayerBlock block: playerBlock) {
+			if(block.getWorldCoords().getY() < min) {
+				min = block.getWorldCoords().getY();
+				bottomBlocks.clear();
+
+			}
+			if (block.getWorldCoords().getY() == min) {
+				bottomBlocks.add(block);
+			}
+		}
+
+		return bottomBlocks;
+	}
+
+
+
 }
