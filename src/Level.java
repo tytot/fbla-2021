@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
@@ -18,6 +19,19 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 	private ArrayList<Point> goalBlocks = new ArrayList<Point>();
 	private JLabel[][] powerUps;
 	private Player player = new Player();
+	
+//	private final HashMap<Point, Rectangle> sides = new HashMap<Point, Rectangle>() {
+//		{
+//			put(new Point(-1, -1), new Rectangle(0, 0, PlayerBlock.SIZE / 5, PlayerBlock.SIZE / 5));
+//			put(new Point(0, -1), new Rectangle(0, 0, PlayerBlock.SIZE, PlayerBlock.SIZE / 5));
+//			put(new Point(1, -1), new Rectangle(4 * PlayerBlock.SIZE / 5, 0, PlayerBlock.SIZE / 5, PlayerBlock.SIZE / 5));
+//			put(new Point(1, 0), new Rectangle(4 * PlayerBlock.SIZE / 5, 0, PlayerBlock.SIZE / 5, PlayerBlock.SIZE));
+//			put(new Point(1, 1), new Rectangle(4 * PlayerBlock.SIZE / 5, 4 * PlayerBlock.SIZE / 5, PlayerBlock.SIZE / 5, PlayerBlock.SIZE / 5));
+//			put(new Point(0, 1), new Rectangle(0, 4 * PlayerBlock.SIZE / 5, PlayerBlock.SIZE, PlayerBlock.SIZE / 5));
+//			put(new Point(-1, 1), new Rectangle(0, 4 * PlayerBlock.SIZE / 5, PlayerBlock.SIZE / 5, PlayerBlock.SIZE / 5));
+//			put(new Point(-1, 0), new Rectangle(0, 0, PlayerBlock.SIZE / 5, PlayerBlock.SIZE));
+//		}
+//	};
 
 	Level(String filePath) {
 		setLayout(null);
@@ -76,10 +90,19 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 				g2.fillRect(j * MapBlock.SIZE, i * MapBlock.SIZE, MapBlock.SIZE, MapBlock.SIZE);
 			}
 		}
-		g2.setColor(Color.RED);
-		for (PlayerBlock pBlock : player.getBlocks()) {
+		ArrayList<PlayerBlock> pBlocks = player.getBlocks();
+		for (PlayerBlock pBlock : pBlocks) {
+			g2.setColor(Color.RED);
 			Point pixelCoords = pBlock.getPixelCoords();
 			g2.fillRect(pixelCoords.x, pixelCoords.y, PlayerBlock.SIZE, PlayerBlock.SIZE);
+//			g2.setColor(Color.RED.darker());
+//			Point worldCoords = pBlock.getWorldCoords();
+//			for (Point offset : sides.keySet()) {
+//				if (!pBlocks.contains(new PlayerBlock(worldCoords.x + offset.x, worldCoords.y + offset.y))) {
+//					Rectangle rect = sides.get(offset);
+//					g2.fillRect(pixelCoords.x + rect.x, pixelCoords.y + rect.y, rect.width, rect.height);
+//				}
+//			}
 		}
 		int state = player.getState();
 		if (state == Player.BUILDING) {

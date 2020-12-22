@@ -455,40 +455,20 @@ public class Player {
     }
 
     public boolean reachedGoal(ArrayList<Point> goalCoord, MapBlock[][] map) {
-        boolean finished = false;
-        ArrayList<PlayerBlock> bottomBlocks = getBottomBlocks(playerBlocks);
+    	ArrayList<PlayerBlock> onGoal = new ArrayList<PlayerBlock>();
         for (int i = 0; i < goalCoord.size(); i++) {
-            PlayerBlock goal = new PlayerBlock((int) goalCoord.get(i).getX(), (int) goalCoord.get(i).getY() - 1);
-            if (playerBlocks.contains(goal)) {
-                for (int j = 0; j < bottomBlocks.size(); j++) {
-                    if (map[(int) bottomBlocks.get(j).getWorldCoords().getY() + 1][(int) bottomBlocks.get(j).getWorldCoords().getX()] instanceof GoalBlock || map[(int) bottomBlocks.get(j).getWorldCoords().getY() + 1][(int) bottomBlocks.get(j).getWorldCoords().getX()] instanceof SpaceBlock) {
-                        finished = true;
-                    } else {
-                        return false;
-                    }
-                }
-            }
-
+            PlayerBlock goal = new PlayerBlock(goalCoord.get(i).x, goalCoord.get(i).y - 1);
+            if (!playerBlocks.contains(goal))
+            	return false;
+            onGoal.add(goal);
         }
-        return finished;
+        for (PlayerBlock pBlock : playerBlocks) {
+        	Point worldCoords = pBlock.getWorldCoords();
+        	if (!onGoal.contains(pBlock)) {
+        		if (isValidBlock(map, worldCoords.x, worldCoords.y + 1) && map[worldCoords.y + 1][worldCoords.x].isSolid())
+        			return false;
+        	}
+        }
+        return true;
     }
-
-    public ArrayList<PlayerBlock> getBottomBlocks(ArrayList<PlayerBlock> playerBlock) {
-        ArrayList<PlayerBlock> bottomBlocks = new ArrayList<PlayerBlock>();
-        double max = 0;
-        for (PlayerBlock block : playerBlock) {
-            if (block.getWorldCoords().getY() > max) {
-                max = block.getWorldCoords().getY();
-            }
-        }
-        for (PlayerBlock block : playerBlock) {
-            if (block.getWorldCoords().getY() == max) {
-                bottomBlocks.add(block);
-            }
-        }
-
-        return bottomBlocks;
-    }
-
-
 }
