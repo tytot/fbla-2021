@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
@@ -13,7 +14,7 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 	private static Insets insets;
 
 	private MapBlock[][] map, startMap;
-	private HashSet<Point> startingPositions = new HashSet<Point>();
+	private ArrayList<Point> startingPositions = new ArrayList<Point>();
 	private JLabel[][] powerUps;
 	private Player player = new Player();
 
@@ -111,7 +112,7 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 			} else if (e.getKeyCode() == KeyEvent.VK_LEFT || e.getKeyCode() == KeyEvent.VK_A) {
 				player.setMovement(Movement.LEFT);
 			} else if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
-				HashSet<PlayerBlock> mergedBlocks = player.merge(map);
+				ArrayList<PlayerBlock> mergedBlocks = player.merge(map);
 				for (PlayerBlock pBlock : mergedBlocks) {
 					Point worldCoords = pBlock.getWorldCoords();
 					map[worldCoords.y][worldCoords.x] = new SpaceBlock();
@@ -159,7 +160,7 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 			} else if (state == Player.CHOOSING) {
 				int chosenSide = player.getChosenSide();
 				if (chosenSide != -1) {
-					HashSet<PlayerBlock> abandonedBlocks = player.chooseSide(chosenSide);
+					ArrayList<PlayerBlock> abandonedBlocks = player.chooseSide(chosenSide);
 					for (PlayerBlock pBlock : abandonedBlocks) {
 						Point worldCoords = pBlock.getWorldCoords();
 						map[worldCoords.y][worldCoords.x] = new CryingPlayerBlock();

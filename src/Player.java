@@ -1,7 +1,7 @@
 
 import java.awt.Color;
 import java.awt.Point;
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -12,9 +12,9 @@ public class Player {
 	private int speedY;
 	private static final int ACC_Y = 1;
 
-	private HashSet<PlayerBlock> playerBlocks = new HashSet<PlayerBlock>();
-	private HashSet<PlayerBlock> buildBlocks = new HashSet<PlayerBlock>();
-	private HashSet<PlayerBlock>[] splitBlocks = new HashSet[2];
+	private ArrayList<PlayerBlock> playerBlocks = new ArrayList<PlayerBlock>();
+	private ArrayList<PlayerBlock> buildBlocks = new ArrayList<PlayerBlock>();
+	private ArrayList<PlayerBlock>[] splitBlocks = new ArrayList[2];
 	private PlayerBlock highlightedBlock = null;
 	private Point[] splitLine = null;
 	private int chosenSide = -1;
@@ -34,15 +34,15 @@ public class Player {
 		return speedY == 0;
 	}
 
-	public HashSet<PlayerBlock> getBlocks() {
+	public ArrayList<PlayerBlock> getBlocks() {
 		return playerBlocks;
 	}
 
-	public HashSet<PlayerBlock> getBuildBlocks() {
+	public ArrayList<PlayerBlock> getBuildBlocks() {
 		return buildBlocks;
 	}
 
-	public HashSet<PlayerBlock> getSplitBlocks(int side) {
+	public ArrayList<PlayerBlock> getSplitBlocks(int side) {
 		return splitBlocks[side];
 	}
 
@@ -111,7 +111,6 @@ public class Player {
 		int xLine = (int) (Math.round((double) mouseX / PlayerBlock.SIZE));
 		int yLine = (int) (Math.round((double) mouseY / PlayerBlock.SIZE));
 		Point[] xSplitLine = null, ySplitLine = null;
-		
 		int startY = yLine;
 		if (playerBlockAt(xLine - 1, startY) && playerBlockAt(xLine, startY)) {
 			while (playerBlockAt(xLine - 1, startY - 1) && playerBlockAt(xLine, startY - 1))
@@ -238,13 +237,13 @@ public class Player {
 		splitLine = null;
 	}
 	
-	private HashSet<PlayerBlock> blocksConnectedTo(PlayerBlock block) {
+	private ArrayList<PlayerBlock> blocksConnectedTo(PlayerBlock block) {
 		int[][] offsets = new int[][] { { 1, 0 }, { 0, 1 }, { -1, 0 }, { 0, -1 } };
 		boolean horizontalCut = splitLine[0].y == splitLine[1].y;
 		int splitLoc = splitLine[0].x;
 		if (horizontalCut)
 			splitLoc = splitLine[0].y;
-		HashSet<PlayerBlock> output = new HashSet<PlayerBlock>();
+		ArrayList<PlayerBlock> output = new ArrayList<PlayerBlock>();
 		Queue<Point> queue = new LinkedList<Point>();
 		queue.offer(new Point(block.getWorldCoords().x, block.getWorldCoords().y));
 		output.add(block);
@@ -286,25 +285,25 @@ public class Player {
 			chosenSide = -1;
 	}
 
-	public HashSet<PlayerBlock> chooseSide(int side) {
+	public ArrayList<PlayerBlock> chooseSide(int side) {
 		// returns blocks to be made solid
 		state = NORMAL;
 		chosenSide = -1;
-		playerBlocks = splitBlocks[side];
-		HashSet<PlayerBlock> output;
+		playerBlocks = new ArrayList<PlayerBlock>(splitBlocks[side]);
+		ArrayList<PlayerBlock> output;
 		if (side == 1)
-			output = (HashSet<PlayerBlock>) splitBlocks[0].clone();
+			output = (ArrayList<PlayerBlock>) splitBlocks[0].clone();
 		else
-			output = (HashSet<PlayerBlock>) splitBlocks[1].clone();
+			output = (ArrayList<PlayerBlock>) splitBlocks[1].clone();
 		splitBlocks[0] = null;
 		splitBlocks[1] = null;
 		return output;
 	}
 	
-	public HashSet<PlayerBlock> merge(MapBlock[][] map) {
+	public ArrayList<PlayerBlock> merge(MapBlock[][] map) {
 		Queue<Point> queue = new LinkedList<Point>();
 		int[][] offsets = new int[][] { { 1, 0 }, { 0, 1 }, { -1, 0 }, { 0, -1 } };
-		HashSet<PlayerBlock> mergedBlocks = new HashSet<PlayerBlock>();
+		ArrayList<PlayerBlock> mergedBlocks = new ArrayList<PlayerBlock>();
 		for (PlayerBlock block : playerBlocks) {
 			queue.offer(block.getWorldCoords());
 		}
@@ -446,7 +445,7 @@ public class Player {
 		return playerBlocks.contains(new PlayerBlock(worldX, worldY));
 	}
 	
-	public void resetPositions(HashSet<Point> positions) {
+	public void resetPositions(ArrayList<Point> positions) {
 		playerBlocks.clear();
 		for (Point pos : positions) {
 			playerBlocks.add(new PlayerBlock(pos.x, pos.y, Color.RED));
