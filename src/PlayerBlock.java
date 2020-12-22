@@ -1,4 +1,3 @@
-
 import java.awt.Color;
 import java.awt.Point;
 
@@ -36,12 +35,16 @@ public class PlayerBlock {
 	public void setColor(Color color) {
 		this.color = color;
 	}
-
+	
+	@Override
 	public int hashCode() {
 		return worldCoords.hashCode();
 	}
-
-	public boolean equals(PlayerBlock other) {
-		return worldCoords.equals(other.getWorldCoords());
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (!(obj instanceof PlayerBlock))
+			return false;
+		return worldCoords.equals(((PlayerBlock) obj).getWorldCoords());
 	}
 }

@@ -1,27 +1,28 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 public class Level extends JPanel implements KeyListener, MouseListener, MouseMotionListener, ActionListener {
 	private Timer timer = new Timer(10, this);
 	private static Insets insets;
 
-	private MapBlock[][] map;
+	private MapBlock[][] map, startMap;
+	private HashSet<Point> startingPositions = new HashSet<Point>();
 	private JLabel[][] powerUps;
 	private Player player = new Player();
-	//test
+
 	Level(String filePath) {
 		setLayout(null);
 		try {
 			List<String> lines = Files.readAllLines(Paths.get(filePath));
 			map = new MapBlock[lines.size()][lines.get(0).length()];
+			startMap = new MapBlock[lines.size()][lines.get(0).length()];
 			powerUps = new JLabel[map.length][map[0].length];
 			for (int i = 0; i < lines.size(); i++) {
 				char[] row = lines.get(i).toCharArray();
@@ -35,7 +36,8 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 						PowerUp p = new RedPowerUp();
 						map[i][j] = p;
 						ImageIcon imgIcon = new ImageIcon(new File(p.imagePath()).toURI().toURL());
-						imgIcon.setImage(imgIcon.getImage().getScaledInstance(MapBlock.SIZE, MapBlock.SIZE, Image.SCALE_DEFAULT));
+						imgIcon.setImage(imgIcon.getImage().getScaledInstance(MapBlock.SIZE, MapBlock.SIZE,
+								Image.SCALE_DEFAULT));
 						JLabel label = new JLabel(imgIcon);
 						powerUps[i][j] = label;
 						label.setBounds(j * MapBlock.SIZE, i * MapBlock.SIZE, MapBlock.SIZE, MapBlock.SIZE);
@@ -43,9 +45,16 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 					} else if (block == 'P') {
 						map[i][j] = new SpaceBlock();
 						player.addBlock(j, i, Color.RED);
+						startingPositions.add(new Point(j, i));
 					}
 				}
 			}
+			for (int i = 0; i < map.length; i++) {
+				for (int j = 0; j < map[i].length; j++) {
+					startMap[i][j] = map[i][j];
+				}
+			}
+			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -78,8 +87,9 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 			Point[] splitLine = player.getSplitLine();
 			if (splitLine != null) {
 				g2.setColor(Color.WHITE);
-				g2.setStroke(new BasicStroke(4));
-				g2.drawLine(splitLine[0].x * PlayerBlock.SIZE, splitLine[0].y * PlayerBlock.SIZE, splitLine[1].x * PlayerBlock.SIZE, splitLine[1].y * PlayerBlock.SIZE);
+				g2.setStroke(new BasicStroke(4, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER));
+				g2.drawLine(splitLine[0].x * PlayerBlock.SIZE, splitLine[0].y * PlayerBlock.SIZE,
+						splitLine[1].x * PlayerBlock.SIZE, splitLine[1].y * PlayerBlock.SIZE);
 			}
 		} else if (state == Player.CHOOSING) {
 			int chosenSide = player.getChosenSide();
@@ -93,17 +103,6 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 		}
 		timer.start();
 	}
-	
-	private Image resizeImage(Image srcImg, int w, int h){
-	    BufferedImage resizedImg = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
-	    Graphics2D g2 = resizedImg.createGraphics();
-
-	    g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-	    g2.drawImage(srcImg, 0, 0, w, h, null);
-	    g2.dispose();
-
-	    return resizedImg;
-	}
 
 	public void keyPressed(KeyEvent e) {
 		if (player.getState() == Player.NORMAL) {
@@ -111,6 +110,12 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 				player.setMovement(Movement.RIGHT);
 			} else if (e.getKeyCode() == KeyEvent.VK_LEFT || e.getKeyCode() == KeyEvent.VK_A) {
 				player.setMovement(Movement.LEFT);
+			} else if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
+				HashSet<PlayerBlock> mergedBlocks = player.merge(map);
+				for (PlayerBlock pBlock : mergedBlocks) {
+					Point worldCoords = pBlock.getWorldCoords();
+					map[worldCoords.y][worldCoords.x] = new SpaceBlock();
+				}
 			}
 		}
 	}
@@ -135,32 +140,43 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 
 	@Override
 	public void mouseClicked(MouseEvent arg0) {
-		int state = player.getState();
-		if (state == Player.NORMAL) {
-			if (SwingUtilities.isRightMouseButton(arg0)) {
-				player.startBuilding(map);
-			} else if (SwingUtilities.isMiddleMouseButton(arg0)) {
-				player.startSplitting();
-			}
-		} else if (state == Player.BUILDING) {
-			if (player.getHighlightedBlock() != null) {
-				player.confirmBuild();
-			}
-		} else if (state == Player.SPLITTING) {
-			if (player.getSplitLine() != null) {
-				player.splitIntoSides();
-			}
-		} else if (state == Player.CHOOSING) {
-			int chosenSide = player.getChosenSide();
-			if (chosenSide != -1) {
-				ArrayList<PlayerBlock> abandonedBlocks = player.chooseSide(chosenSide);
-				for (PlayerBlock pBlock : abandonedBlocks) {
-					Point worldCoords = pBlock.getWorldCoords();
-					map[worldCoords.y][worldCoords.x] = new CryingPlayerBlock();
+		if (player.getMovement() == Movement.STILL && player.isFalling()) {
+			int state = player.getState();
+			if (state == Player.NORMAL) {
+				if (SwingUtilities.isRightMouseButton(arg0)) {
+					player.startBuilding(map);
+				} else if (SwingUtilities.isMiddleMouseButton(arg0)) {
+					player.startSplitting();
+				}
+			} else if (state == Player.BUILDING) {
+				if (player.getHighlightedBlock() != null) {
+					player.confirmBuild();
+				}
+			} else if (state == Player.SPLITTING) {
+				if (player.getSplitLine() != null) {
+					player.splitIntoSides();
+				}
+			} else if (state == Player.CHOOSING) {
+				int chosenSide = player.getChosenSide();
+				if (chosenSide != -1) {
+					HashSet<PlayerBlock> abandonedBlocks = player.chooseSide(chosenSide);
+					for (PlayerBlock pBlock : abandonedBlocks) {
+						Point worldCoords = pBlock.getWorldCoords();
+						map[worldCoords.y][worldCoords.x] = new CryingPlayerBlock();
+					}
 				}
 			}
+			mouseAction(arg0);
 		}
-		mouseAction(arg0);
+	}
+	
+	public void resetLevel() {
+		for (int i = 0; i < startMap.length; i++) {
+			for (int j = 0; j < startMap[i].length; j++) {
+				map[i][j] = startMap[i][j];
+			}
+		}
+		player.resetPositions(startingPositions);
 	}
 
 	@Override
@@ -197,7 +213,7 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 	public void mouseMoved(MouseEvent arg0) {
 		mouseAction(arg0);
 	}
-	
+
 	private void mouseAction(MouseEvent e) {
 		int x = e.getX() - insets.left;
 		int y = e.getY() - insets.top;
@@ -214,6 +230,9 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
 		player.move(map);
+		if (player.isOutOfBounds(map)) {
+			resetLevel();
+		}
 		repaint();
 	}
 
