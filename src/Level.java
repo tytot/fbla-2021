@@ -39,6 +39,7 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 //	};
 
 	Level(String filePath) {
+		SoundEffect.BG.play(true);
 		setLayout(null);
 		try {
 			List<String> lines = Files.readAllLines(Paths.get(filePath));
@@ -262,6 +263,8 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 			}
 		}
 		player.resetPositions(startingPositions);
+		SoundEffect.BG.stop();
+		SoundEffect.BG.play(true);
 		resetPowerUps();
 	}
 

@@ -4,7 +4,7 @@ import java.net.URL;
 import javax.sound.sampled.*;
 
 public enum SoundEffect {
-	PLATE_CLICK("res/audio/beep-07.wav"), MISS("res/audio/pick-up.wav"), BG(""), CONGRATS("");
+	PLATE_CLICK("res/audio/beep-07.wav"), MISS("res/audio/pick-up.wav"), BG("res/audio/music.wav"), CONGRATS("");
 
 	// Nested class for specifying volume
 	public static enum Volume {
