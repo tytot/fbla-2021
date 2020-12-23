@@ -23,8 +23,9 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 	private Player player = new Player();
 	
 	private JLabel reset, growCounter, splitCounter, mergeCounter;
-	private Font labelFont = new Font("Courier New", Font.BOLD, MapBlock.SIZE);
-
+	private final Font labelFont = new Font("Courier New", Font.BOLD, MapBlock.SIZE);
+	private final Color textColor = Color.WHITE;
+	
 //	private final HashMap<Point, Rectangle> sides = new HashMap<Point, Rectangle>() {
 //		{
 //			put(new Point(-1, -1), new Rectangle(0, 0, PlayerBlock.SIZE / 5, PlayerBlock.SIZE / 5));
@@ -69,8 +70,8 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 					}
 				}
 			}
-			resetPowerUps();
 			addLabels();
+			resetPowerUps();
 			for (int i = 0; i < map.length; i++) {
 				for (int j = 0; j < map[i].length; j++) {
 					startMap[i][j] = map[i][j];
@@ -83,7 +84,7 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 	
 	private void addLabels() throws MalformedURLException {
 		reset = new JLabel("RESET");
-		reset.setForeground(Color.WHITE);
+		reset.setForeground(textColor);
 		reset.setFont(labelFont);
 		reset.addMouseListener(this);
 		reset.setBounds(MapBlock.SIZE, 0, 3 * MapBlock.SIZE, MapBlock.SIZE);
@@ -95,7 +96,7 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 		growIcon.setBounds(5 * MapBlock.SIZE, 0, MapBlock.SIZE, MapBlock.SIZE);
 		add(growIcon);
 		growCounter = new JLabel("x0");
-		growCounter.setForeground(Color.WHITE);
+		growCounter.setForeground(textColor);
 		growCounter.setFont(labelFont);
 		growCounter.addMouseListener(this);
 		growCounter.setBounds(6 * MapBlock.SIZE, 0, 2 * MapBlock.SIZE, MapBlock.SIZE);
@@ -107,7 +108,7 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 		splitIcon.setBounds(8 * MapBlock.SIZE, 0, MapBlock.SIZE, MapBlock.SIZE);
 		add(splitIcon);
 		splitCounter = new JLabel("x0");
-		splitCounter.setForeground(Color.WHITE);
+		splitCounter.setForeground(textColor);
 		splitCounter.setFont(labelFont);
 		splitCounter.addMouseListener(this);
 		splitCounter.setBounds(9 * MapBlock.SIZE, 0, 2 * MapBlock.SIZE, MapBlock.SIZE);
@@ -119,7 +120,7 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 		mergeIcon.setBounds(11 * MapBlock.SIZE, 0, MapBlock.SIZE, MapBlock.SIZE);
 		add(mergeIcon);
 		mergeCounter = new JLabel("x0");
-		mergeCounter.setForeground(Color.WHITE);
+		mergeCounter.setForeground(textColor);
 		mergeCounter.setFont(labelFont);
 		mergeCounter.addMouseListener(this);
 		mergeCounter.setBounds(12 * MapBlock.SIZE, 0, 2 * MapBlock.SIZE, MapBlock.SIZE);
@@ -269,7 +270,7 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 		try {
 			for (int i = 0; i < map.length; i++) {
 				for (int j = 0; j < map[0].length; j++) {
-					if (map[i][j] instanceof PowerUp) {
+					if (map[i][j] instanceof PowerUp && powerUps[i][j] == null) {
 						ImageIcon imgIcon = new ImageIcon(new File(((PowerUp) map[i][j]).imagePath()).toURI().toURL());
 						imgIcon.setImage(
 								imgIcon.getImage().getScaledInstance(MapBlock.SIZE, MapBlock.SIZE, Image.SCALE_DEFAULT));
@@ -284,6 +285,9 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 			e.printStackTrace();
 		}
 		storedPowerUps = new int[] {0,0,0};
+		growCounter.setText("x0");
+		splitCounter.setText("x0");
+		mergeCounter.setText("x0");
 	}
 
 	public void pickUpPowerUp() {
@@ -291,7 +295,7 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 			PlayerBlock pBlock = player.getBlocks().get(i);
 			Point check = new Point((int) (Math.round(pBlock.getPixelCoords().getX() / MapBlock.SIZE)),
 					pBlock.getWorldCoords().y);
-			if (powerUps[check.y][check.x] != null) {
+			if (player.isValidBlock(map, check.x, check.y) && powerUps[check.y][check.x] != null) {
 				if (map[check.y][check.x] instanceof GrowPowerUp) {
 					growCounter.setText("x" + ++storedPowerUps[0]);
 				} else if (map[check.y][check.x] instanceof SplitPowerUp) {
@@ -373,7 +377,7 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 
 	private static void runGame() {
 		Level level = new Level("levels/level3.txt");
-		JFrame frame = new JFrame("Level 1");
+		JFrame frame = new JFrame("Level 3");
 		frame.addKeyListener(level);
 		frame.addMouseListener(level);
 		frame.addMouseMotionListener(level);

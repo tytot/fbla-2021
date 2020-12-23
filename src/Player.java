@@ -440,7 +440,7 @@ public class Player {
 		return out;
 	}
 
-	private boolean isValidBlock(MapBlock[][] map, int width, int height) {
+	public boolean isValidBlock(MapBlock[][] map, int width, int height) {
 		return height >= 0 && height < map.length && width >= 0 && width < map[0].length;
 	}
 
