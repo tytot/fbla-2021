@@ -362,6 +362,7 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 		}
 		if (player.reachedGoal(goalBlocks, map)) {
 			System.out.println("checkpoint");
+			SoundEffect.PLATE_CLICK.play(false);
 		}
 		repaint();
 	}
@@ -372,7 +373,8 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 	}
 
 	private static void runGame() {
-		Level level = new Level("levels/level3.txt");
+
+		Level level = new Level("levels/level1.txt");
 		JFrame frame = new JFrame("Level 1");
 		frame.addKeyListener(level);
 		frame.addMouseListener(level);

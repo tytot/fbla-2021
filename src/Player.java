@@ -463,6 +463,7 @@ public class Player {
             if (!playerBlocks.contains(goal))
             	return false;
             onGoal.add(goal);
+
         }
         for (PlayerBlock pBlock : playerBlocks) {
         	Point worldCoords = pBlock.getWorldCoords();
