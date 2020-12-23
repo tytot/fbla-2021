@@ -348,8 +348,6 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 			}
 		}
 		player.resetPositions(startingPositions);
-		SoundEffect.BG.stop();
-		SoundEffect.BG.play(true);
 		resetPowerUps();
 	}
 
@@ -465,7 +463,6 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 			}
 			if (!complete && player.reachedGoal(goalBlocks, map)) {
 				complete = true;
-				SoundEffect.PLATE_CLICK.play(false);
 				endTime = System.currentTimeMillis();
 				fadeTimer.start();
 			}
