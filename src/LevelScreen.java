@@ -21,7 +21,7 @@ import javax.swing.SwingConstants;
 
 public class LevelScreen extends JPanel {
 	private JFrame frame;
-	private JPanel titlePanel, level1, level2;
+	private JPanel titlePanel, level1, level2, level3, level4;
 	private JLabel title;
 	private ArrayList<JButton[]> levels = new ArrayList<JButton[]>();
 	private int currentCard = 1;
@@ -106,6 +106,55 @@ public class LevelScreen extends JPanel {
 		level2.add(Box.createVerticalGlue());
 		cardPanel.add(level2, "2");
 
+		// Setting up Third Level Set
+		level3 = new JPanel();
+		level3.setBackground(Color.black);
+		level3.setLayout(layout);
+		level3.setBorder(BorderFactory.createEmptyBorder(30, 0, 0, 0));
+		JButton[] level3Buttons = new JButton[6];
+		for (int i = 0; i < level1Buttons.length; i++) {
+			level1Buttons[i] = new JButton(String.valueOf(i + 13));
+		}
+		levels.add(level3Buttons);
+		for (JButton level : levels.get(0)) {
+			level.setPreferredSize(new Dimension(60, 35));
+			level.setBackground(Color.BLACK);
+			level.setFont(new Font("Serif", Font.BOLD, 25));
+			level.setForeground(Color.WHITE);
+			level.setFocusPainted(false);
+			level.setBorder(BorderFactory.createMatteBorder(2, 2, 2, 2, Color.red));
+			level3.add(level);
+		}
+		layout.setHgap(100);
+		layout.setVgap(50);
+		level3.add(Box.createVerticalGlue());
+		cardPanel.add(level3, "3");
+
+		// Setting up Fourth Level Set
+		level4 = new JPanel();
+		level4.setBackground(Color.black);
+		level4.setLayout(layout);
+		level4.setBorder(BorderFactory.createEmptyBorder(30, 0, 0, 0));
+		JButton[] level4Buttons = new JButton[6];
+		for (int i = 0; i < level4Buttons.length; i++) {
+			level1Buttons[i] = new JButton(String.valueOf(i + 19));
+		}
+		levels.add(level4Buttons);
+		for (JButton level : levels.get(0)) {
+			level.setPreferredSize(new Dimension(60, 35));
+			level.setBackground(Color.BLACK);
+			level.setFont(new Font("Serif", Font.BOLD, 25));
+			level.setForeground(Color.WHITE);
+			level.setFocusPainted(false);
+			level.setBorder(BorderFactory.createMatteBorder(2, 2, 2, 2, Color.red));
+			level4.add(level);
+		}
+		layout.setHgap(100);
+		layout.setVgap(50);
+		level4.add(Box.createVerticalGlue());
+		cardPanel.add(level4, "4");
+
+
 		this.add(cardPanel, c);
 
 		JPanel buttonPanel = new JPanel();
@@ -113,14 +162,6 @@ public class LevelScreen extends JPanel {
 		buttonLayout.setHgap(50);
 		buttonPanel.setLayout(buttonLayout);
 		buttonPanel.setBackground(Color.black);
-		// Add Next Button
-		JButton next = new JButton("Next");
-		next.setBackground(Color.black);
-		next.setFont(new Font("Serif", Font.BOLD, 25));
-		next.setForeground(Color.white);
-		next.setFocusPainted(false);
-		buttonPanel.add(next);
-
 		// Add Back Button
 		JButton back = new JButton("Previous");
 		back.setBackground(Color.black);
@@ -130,9 +171,17 @@ public class LevelScreen extends JPanel {
 
 		buttonPanel.add(back);
 
+		// Add Next Button
+		JButton next = new JButton("Next");
+		next.setBackground(Color.black);
+		next.setFont(new Font("Serif", Font.BOLD, 25));
+		next.setForeground(Color.white);
+		next.setFocusPainted(false);
+		buttonPanel.add(next);
+
 		next.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				if (currentCard < 2) {
+				if (currentCard < 4) {
 					currentCard += 1;
 					cl.show(cardPanel, "" + (currentCard));
 				}
