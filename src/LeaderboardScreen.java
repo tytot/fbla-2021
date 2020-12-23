@@ -20,31 +20,27 @@ public class LeaderboardScreen extends JPanel {
         // Setting up Frame and layout
         this.frame = frame;
         this.setBackground(Color.BLACK);
-        frame.setPreferredSize(new Dimension(600, 400));
-        this.setLayout(new GridBagLayout());
-        GridBagConstraints c = new GridBagConstraints();
+        this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
-        // Setting up the Title
-        titlePanel = new JPanel();
-        titlePanel.setBackground(Color.BLACK);
         title = new JLabel("Leaderboard", SwingConstants.CENTER);
         title.setFont(TITLE_FONT);
         title.setForeground(Color.RED);
-        titlePanel.add(title);
-        c.gridx = 0;
-        c.gridy = 0;
-        c.fill = GridBagConstraints.VERTICAL;
-        this.add(titlePanel, c);
-
-        //Setting up Leaderboard
-        leaderboard = new JPanel();
-        leaderboard.setBackground(Color.black);
-        leaderboard.setLayout(new BoxLayout(leaderboard, BoxLayout.PAGE_AXIS));
+        title.setAlignmentX(CENTER_ALIGNMENT);
+        add(Box.createVerticalStrut(100));
+        this.add(title);
+        
+        add(Box.createVerticalStrut(100));
         Times.add(100);
-        Names.add(new JLabel("Aditya" + "Time: " + Times.get(0)));
-        leaderboard.add(Names.get(0));
-        leaderboard.add(Names.get(1));
-        leaderboard.add(Names.get(2));
+        Names.add(new JLabel("#1: Alex   - 09:31.323"));
+        Names.add(new JLabel("#2: Tyler  - 11:45.020"));
+        Names.add(new JLabel("#3: Aaron  - 13:10.434"));
+        Names.add(new JLabel("#4: Aditya - 25:01:919"));
+        for (JLabel label : Names) {
+        	label.setFont(new Font("Courier New", Font.BOLD, 50));
+			label.setForeground(Color.WHITE);
+			label.setAlignmentX(CENTER_ALIGNMENT);
+			add(label);
+        }
     }
 
 }
