@@ -380,8 +380,8 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 	}
 
 	private static void runGame() {
-		Level level = new Level("levels/level3.txt");
-		JFrame frame = new JFrame("Level 3");
+		Level level = new Level("levels/level7.txt");
+		JFrame frame = new JFrame("Level 7");
 		frame.addKeyListener(level);
 		frame.addMouseListener(level);
 		frame.addMouseMotionListener(level);
