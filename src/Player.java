@@ -31,7 +31,7 @@ public class Player {
 	}
 
 	public boolean isFalling() {
-		return speedY == 0;
+		return speedY > 0;
 	}
 
 	public ArrayList<PlayerBlock> getBlocks() {

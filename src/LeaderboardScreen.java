@@ -13,7 +13,7 @@ public class LeaderboardScreen extends JPanel {
     private int currentCard = 1;
     private CardLayout cl;
     private GridLayout layout, buttonLayout;
-    private static final Font TITLE_FONT = new Font("Serif", Font.BOLD, 50);
+    private static final Font TITLE_FONT = new Font("Courier New", Font.BOLD, 100);
 
     LeaderboardScreen(JFrame frame) {
 
@@ -42,9 +42,9 @@ public class LeaderboardScreen extends JPanel {
         leaderboard.setLayout(new BoxLayout(leaderboard, BoxLayout.PAGE_AXIS));
         Times.add(100);
         Names.add(new JLabel("Aditya" + "Time: " + Times.get(0)));
-
-
-
+        leaderboard.add(Names.get(0));
+        leaderboard.add(Names.get(1));
+        leaderboard.add(Names.get(2));
     }
 
 }

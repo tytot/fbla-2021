@@ -19,7 +19,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
-public class LevelScreen extends JPanel {
+public class LevelScreen extends JPanel implements ActionListener {
 	private JFrame frame;
 	private JPanel titlePanel, level1, level2, level3, level4;
 	private JLabel title;
@@ -27,14 +27,13 @@ public class LevelScreen extends JPanel {
 	private int currentCard = 1;
 	private CardLayout cl;
 	private GridLayout layout, buttonLayout;
-	private static final Font TITLE_FONT = new Font("Serif", Font.BOLD, 50);
+	private static final Font TITLE_FONT = new Font("Courier New", Font.BOLD, 100);
 
 	LevelScreen(JFrame frame) {
 
 		// Setting up Frame and layout
 		this.frame = frame;
 		this.setBackground(Color.BLACK);
-		frame.setPreferredSize(new Dimension(600, 400));
 		this.setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
 
@@ -69,12 +68,14 @@ public class LevelScreen extends JPanel {
 		}
 		levels.add(level1Buttons);
 		for (JButton level : levels.get(0)) {
-			level.setPreferredSize(new Dimension(60, 35));
+			level.setPreferredSize(new Dimension(120, 70));
 			level.setBackground(Color.BLACK);
-			level.setFont(new Font("Serif", Font.BOLD, 25));
+			level.setFont(new Font("Courier New", Font.BOLD, 50));
 			level.setForeground(Color.WHITE);
 			level.setFocusPainted(false);
 			level.setBorder(BorderFactory.createMatteBorder(2, 2, 2, 2, Color.red));
+			level.addActionListener(this);
+			level.setActionCommand(level.getText());
 			level1.add(level);
 		}
 		layout.setHgap(100);
@@ -93,12 +94,14 @@ public class LevelScreen extends JPanel {
 		}
 		levels.add(level2Buttons);
 		for (JButton level : levels.get(1)) {
-			level.setPreferredSize(new Dimension(60, 35));
+			level.setPreferredSize(new Dimension(120, 70));
 			level.setBackground(Color.BLACK);
-			level.setFont(new Font("Serif", Font.BOLD, 25));
+			level.setFont(new Font("Courier New", Font.BOLD, 50));
 			level.setForeground(Color.WHITE);
 			level.setFocusPainted(false);
 			level.setBorder(BorderFactory.createMatteBorder(2, 2, 2, 2, Color.red));
+			level.addActionListener(this);
+			level.setActionCommand(level.getText());
 			level2.add(level);
 		}
 		layout.setHgap(100);
@@ -117,12 +120,14 @@ public class LevelScreen extends JPanel {
 		}
 		levels.add(level3Buttons);
 		for (JButton level : levels.get(0)) {
-			level.setPreferredSize(new Dimension(60, 35));
+			level.setPreferredSize(new Dimension(120, 70));
 			level.setBackground(Color.BLACK);
-			level.setFont(new Font("Serif", Font.BOLD, 25));
+			level.setFont(new Font("Courier New", Font.BOLD, 50));
 			level.setForeground(Color.WHITE);
 			level.setFocusPainted(false);
 			level.setBorder(BorderFactory.createMatteBorder(2, 2, 2, 2, Color.red));
+			level.addActionListener(this);
+			level.setActionCommand(level.getText());
 			level3.add(level);
 		}
 		layout.setHgap(100);
@@ -141,12 +146,14 @@ public class LevelScreen extends JPanel {
 		}
 		levels.add(level4Buttons);
 		for (JButton level : levels.get(0)) {
-			level.setPreferredSize(new Dimension(60, 35));
+			level.setPreferredSize(new Dimension(120, 70));
 			level.setBackground(Color.BLACK);
-			level.setFont(new Font("Serif", Font.BOLD, 25));
+			level.setFont(new Font("Courier New", Font.BOLD, 50));
 			level.setForeground(Color.WHITE);
 			level.setFocusPainted(false);
 			level.setBorder(BorderFactory.createMatteBorder(2, 2, 2, 2, Color.red));
+			level.addActionListener(this);
+			level.setActionCommand(level.getText());
 			level4.add(level);
 		}
 		layout.setHgap(100);
@@ -154,7 +161,7 @@ public class LevelScreen extends JPanel {
 		level4.add(Box.createVerticalGlue());
 		cardPanel.add(level4, "4");
 
-
+		c.insets = new Insets(125, 0, 0, 0);
 		this.add(cardPanel, c);
 
 		JPanel buttonPanel = new JPanel();
@@ -165,7 +172,7 @@ public class LevelScreen extends JPanel {
 		// Add Back Button
 		JButton back = new JButton("Previous");
 		back.setBackground(Color.black);
-		back.setFont(new Font("Serif", Font.BOLD, 25));
+		back.setFont(new Font("Courier New", Font.BOLD, 50));
 		back.setForeground(Color.white);
 		back.setFocusPainted(false);
 
@@ -174,7 +181,7 @@ public class LevelScreen extends JPanel {
 		// Add Next Button
 		JButton next = new JButton("Next");
 		next.setBackground(Color.black);
-		next.setFont(new Font("Serif", Font.BOLD, 25));
+		next.setFont(new Font("Courier New", Font.BOLD, 50));
 		next.setForeground(Color.white);
 		next.setFocusPainted(false);
 		buttonPanel.add(next);
@@ -199,6 +206,14 @@ public class LevelScreen extends JPanel {
 
 		c.gridy = 2;
 		this.add(buttonPanel, c);
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent arg0) {
+		int level = Integer.parseInt(arg0.getActionCommand());
+		frame.setContentPane(new Level(level, frame, this));
+		frame.repaint();
+		frame.revalidate();
 	}
 
 }

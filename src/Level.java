@@ -7,13 +7,15 @@ import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 
-public class Level extends JPanel implements KeyListener, MouseListener, MouseMotionListener, ActionListener {
+public class Level extends JPanel implements MouseListener, MouseMotionListener, ActionListener {
+	private JFrame frame;
+	private JPanel last;
+	private int levelNumber;
+	
 	private Timer timer = new Timer(10, this);
-	private static Insets insets;
+	private Timer fadeTimer = new Timer(10, this);
 
 	private MapBlock[][] map, startMap;
 	private ArrayList<Point> startingPositions = new ArrayList<Point>();
@@ -21,10 +23,15 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 	private JLabel[][] powerUps;
 	private int[] storedPowerUps = { 0, 0, 0 };
 	private Player player = new Player();
+	private boolean firstMovement = true;
+	private long startTime, endTime;
+	private boolean complete = false;
 	
-	private JLabel reset, growCounter, splitCounter, mergeCounter;
+	private JLabel back, reset, growCounter, splitCounter, mergeCounter, next, retry;
+	private JLabel[] hearts = new JLabel[3];
 	private final Font labelFont = new Font("Courier New", Font.BOLD, MapBlock.SIZE);
 	private final Color textColor = Color.WHITE;
+	private Color fadeIn = null;
 	
 //	private final HashMap<Point, Rectangle> sides = new HashMap<Point, Rectangle>() {
 //		{
@@ -39,11 +46,18 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 //		}
 //	};
 
-	Level(String filePath) {
-		SoundEffect.BG.play(true);
+	Level(int levelNumber, JFrame frame, JPanel last) {
+		this.frame = frame;
+		this.last = last;
+		this.levelNumber = levelNumber;
 		setLayout(null);
+		addMouseListener(this);
+		addMouseMotionListener(this);
+		setFocusable(true);
+		requestFocus();
+		requestFocusInWindow();
 		try {
-			List<String> lines = Files.readAllLines(Paths.get(filePath));
+			List<String> lines = Files.readAllLines(Paths.get("levels/level" + levelNumber + ".txt"));
 			map = new MapBlock[lines.size()][lines.get(0).length()];
 			startMap = new MapBlock[lines.size()][lines.get(0).length()];
 			powerUps = new JLabel[map.length][map[0].length];
@@ -55,6 +69,8 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 						map[i][j] = new SpaceBlock();
 					} else if (block == 'B') {
 						map[i][j] = new SolidBlock();
+					} else if (block == 'C') {
+						map[i][j] = new CryingPlayerBlock();
 					} else if (block == 'G') {
 						map[i][j] = new GoalBlock();
 						goalBlocks.add(new Point(j, i));
@@ -81,9 +97,18 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		bindKeys();
+		timer.start();
 	}
 	
 	private void addLabels() throws MalformedURLException {
+		back = new JLabel("BACK");
+		back.setForeground(textColor);
+		back.setFont(labelFont);
+		back.addMouseListener(this);
+		back.setBounds(MapBlock.SIZE, (map.length - 1) * MapBlock.SIZE, 3 * MapBlock.SIZE, MapBlock.SIZE);
+		add(back);
+		
 		reset = new JLabel("RESET");
 		reset.setForeground(textColor);
 		reset.setFont(labelFont);
@@ -126,6 +151,16 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 		mergeCounter.addMouseListener(this);
 		mergeCounter.setBounds(12 * MapBlock.SIZE, 0, 2 * MapBlock.SIZE, MapBlock.SIZE);
 		add(mergeCounter);
+		
+		for (int i = 0; i < hearts.length; i++) {
+			ImageIcon imgIcon = new ImageIcon(new File("res/img/heart.png").toURI().toURL());
+			imgIcon.setImage(
+					imgIcon.getImage().getScaledInstance(MapBlock.SIZE, MapBlock.SIZE, Image.SCALE_DEFAULT));
+			JLabel label = new JLabel(imgIcon);
+			hearts[i] = label;
+			label.setBounds((map[0].length - 2 - i) * MapBlock.SIZE, 0, MapBlock.SIZE, MapBlock.SIZE);
+			add(label);
+		}
 	}
 
 	public void paintComponent(Graphics g) {
@@ -178,54 +213,103 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 				}
 			}
 		}
-		timer.start();
+		if (fadeIn != null) {
+			g2.setColor(fadeIn);
+			g2.fillRect(0, 0, getWidth(), getHeight());
+		}
 	}
-
-	public void keyPressed(KeyEvent e) {
-		if (player.getState() == Player.NORMAL) {
-			if (e.getKeyCode() == KeyEvent.VK_RIGHT || e.getKeyCode() == KeyEvent.VK_D) {
-				player.setMovement(Movement.RIGHT);
-			} else if (e.getKeyCode() == KeyEvent.VK_LEFT || e.getKeyCode() == KeyEvent.VK_A) {
-				player.setMovement(Movement.LEFT);
-			} else if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
-				ArrayList<PlayerBlock> mergedBlocks = player.merge(map);
-				if (mergedBlocks.size() > 0 && storedPowerUps[2] > 0) {
-					for (PlayerBlock pBlock : mergedBlocks) {
-						Point worldCoords = pBlock.getWorldCoords();
-						map[worldCoords.y][worldCoords.x] = new SpaceBlock();
-						player.addBlock(worldCoords.x, worldCoords.y, Color.RED);
+	
+	public void bindKeys() {
+        registerKeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0, false), "left-press", new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (player.getState() == Player.NORMAL) {
+					player.setMovement(Movement.LEFT);
+					if (firstMovement) {
+						startTime = System.currentTimeMillis();
+						firstMovement = false;
 					}
-					mergeCounter.setText("x" + --storedPowerUps[2]);
 				}
 			}
-		}
-	}
-
-	@Override
-	public void keyReleased(KeyEvent e) {
-		if (player.getState() == Player.NORMAL) {
-			if (e.getKeyCode() == KeyEvent.VK_RIGHT || e.getKeyCode() == KeyEvent.VK_D) {
-				player.setMovement(Movement.STILL_RIGHT);
-			} else if (e.getKeyCode() == KeyEvent.VK_LEFT || e.getKeyCode() == KeyEvent.VK_A) {
-				player.setMovement(Movement.STILL_LEFT);
-			} else if (e.getKeyCode() == KeyEvent.VK_SPACE && player.getMovement() == Movement.STILL
-					&& !player.isFalling() && storedPowerUps[0] > 0) {
-				player.startBuilding(map);
+		});
+        registerKeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0, false), "right-press", new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (player.getState() == Player.NORMAL) {
+					player.setMovement(Movement.RIGHT);
+					if (firstMovement) {
+						startTime = System.currentTimeMillis();
+						firstMovement = false;
+					}
+				}
 			}
-		}
+		});
+        registerKeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_M, 0, false), "shift-press", new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (player.getState() == Player.NORMAL) {
+					ArrayList<PlayerBlock> mergedBlocks = player.merge(map);
+					if (mergedBlocks.size() > 0 && storedPowerUps[2] > 0) {
+						for (PlayerBlock pBlock : mergedBlocks) {
+							Point worldCoords = pBlock.getWorldCoords();
+							map[worldCoords.y][worldCoords.x] = new SpaceBlock();
+							player.addBlock(worldCoords.x, worldCoords.y, Color.RED);
+						}
+						mergeCounter.setText("x" + --storedPowerUps[2]);
+					}
+				}
+			}
+		});
+        registerKeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0, true), "left-release", new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (player.getState() == Player.NORMAL) {
+					if (player.getMovement() != Movement.RIGHT) {
+						player.setMovement(Movement.STILL_LEFT);
+					}
+				}
+			}
+		});
+        registerKeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0, true), "right-release", new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (player.getState() == Player.NORMAL) {
+					if (player.getMovement() != Movement.LEFT) {
+						player.setMovement(Movement.STILL_RIGHT);
+					}
+				}
+			}
+		});
 	}
 
-	@Override
-	public void keyTyped(KeyEvent e) {
-	}
+    public void registerKeyBinding(KeyStroke keyStroke, String name, Action action) {
+        InputMap im = getInputMap(WHEN_IN_FOCUSED_WINDOW);
+        ActionMap am = getActionMap();
+
+        im.put(keyStroke, name);
+        am.put(name, action);
+    }
 
 	@Override
 	public void mouseClicked(MouseEvent arg0) {
 		if (arg0.getComponent() == reset) {
-			System.out.println("reset");
-			resetLevel();
-			resetPowerUps();
-		} else if (player.getMovement() == Movement.STILL && player.isFalling()) {
+			if (!complete) {
+				resetLevel();
+				resetPowerUps();
+			}
+		} else if (arg0.getComponent() == next) {
+			frame.setContentPane(new Level(++levelNumber, frame, last));
+			frame.revalidate();
+			frame.repaint();
+		} else if (arg0.getComponent() == retry) {
+			frame.setContentPane(new Level(levelNumber, frame, last));
+			frame.revalidate();
+			frame.repaint();
+		} else if (arg0.getComponent() == back) {
+			frame.setContentPane(last);
+			frame.revalidate();
+			frame.repaint();
+		} else if (player.getMovement() == Movement.STILL && !player.isFalling()) {
 			int state = player.getState();
 			if (state == Player.NORMAL) {
 				if (SwingUtilities.isRightMouseButton(arg0) && storedPowerUps[0] > 0) {
@@ -348,8 +432,8 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 	}
 
 	private void mouseAction(MouseEvent e) {
-		int x = e.getX() - insets.left;
-		int y = e.getY() - insets.top;
+		int x = e.getX();
+		int y = e.getY();
 		int state = player.getState();
 		if (state == Player.BUILDING) {
 			player.highlightBlock(x, y);
@@ -362,14 +446,87 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
-		player.move(map);
-		pickUpPowerUp();
-		if (player.isOutOfBounds(map)) {
-			resetLevel();
-		}
-		if (player.reachedGoal(goalBlocks, map)) {
-			System.out.println("checkpoint");
-			SoundEffect.PLATE_CLICK.play(false);
+		if (arg0.getSource() == timer) {
+			player.move(map);
+			pickUpPowerUp();
+			if (player.isOutOfBounds(map)) {
+				resetLevel();
+				if (hearts[0] != null) {
+					remove(hearts[0]);
+					hearts[0] = null;
+				} else if (hearts[1] != null) {
+					remove(hearts[1]);
+					hearts[1] = null;
+				} else if (hearts[2] != null) {
+					remove(hearts[2]);
+					hearts[2] = null;
+					fadeTimer.start();
+				}
+			}
+			if (!complete && player.reachedGoal(goalBlocks, map)) {
+				complete = true;
+				SoundEffect.PLATE_CLICK.play(false);
+				endTime = System.currentTimeMillis();
+				fadeTimer.start();
+			}
+			timer.start();
+		} else if (arg0.getSource() == fadeTimer) {
+			if (fadeIn == null) {
+				fadeIn = new Color(0, 0, 0, 1);
+				remove(reset);
+				for (int i = 0; i < powerUps.length; i++) {
+					for (int j = 0; j < powerUps.length; j++) {
+						if (powerUps[i][j] != null) {
+							remove(powerUps[i][j]);
+						}
+					}
+				}
+			} else if (fadeIn.getAlpha() < 255) {
+                fadeIn = new Color(fadeIn.getRed(), fadeIn.getGreen(), fadeIn.getBlue(), fadeIn.getAlpha() + 2);
+                fadeTimer.start();
+            } else {
+            	if (fadeTimer.isRunning()) {
+            		fadeTimer.stop();
+            	}
+            	if (complete) {
+	        		JLabel finishLabel = new JLabel("LEVEL COMPLETE", SwingConstants.CENTER);
+	        		finishLabel.setForeground(Color.WHITE);
+	        		finishLabel.setFont(labelFont.deriveFont(100f));
+	        		finishLabel.setBounds(0, 4 * MapBlock.SIZE, getWidth(), 2 * MapBlock.SIZE);
+	        		add(finishLabel);
+	        		JLabel timeLabel = new JLabel("in " + (endTime - startTime) / 1000.0 + " s.", SwingConstants.CENTER);
+	        		timeLabel.setForeground(Color.WHITE);
+	        		timeLabel.setFont(labelFont);
+	        		timeLabel.setBounds(0, 6 * MapBlock.SIZE, getWidth(), MapBlock.SIZE);
+	        		add(timeLabel);
+	        		JLabel gTimeLabel = new JLabel("Total time: " + (System.currentTimeMillis() - Window.startTime) / 1000.0 + " s.", SwingConstants.CENTER);
+	        		gTimeLabel.setForeground(Color.WHITE);
+	        		gTimeLabel.setFont(labelFont);
+	        		gTimeLabel.setBounds(0, 8 * MapBlock.SIZE, getWidth(), MapBlock.SIZE);
+	        		add(gTimeLabel);
+	        		if (levelNumber == 23) {
+	        			Window.endTime = System.currentTimeMillis();
+	        		}
+	        		next = new JLabel("NEXT LEVEL", SwingConstants.CENTER);
+	        		next.setForeground(Color.WHITE);
+	        		next.setFont(labelFont);
+	        		next.setBounds(0, (map.length - 2) * MapBlock.SIZE, getWidth(), MapBlock.SIZE);
+	        		next.addMouseListener(this);
+	        		add(next);
+            	} else {
+	        		JLabel failLabel = new JLabel("YOU FAILED.", SwingConstants.CENTER);
+	        		failLabel.setForeground(Color.WHITE);
+	        		failLabel.setFont(labelFont.deriveFont(100f));
+	        		failLabel.setBounds(0, 4 * MapBlock.SIZE, getWidth(), 2 * MapBlock.SIZE);
+	        		add(failLabel);
+	        		retry = new JLabel("RETRY", SwingConstants.CENTER);
+	        		retry.setForeground(Color.WHITE);
+	        		retry.setFont(labelFont);
+	        		retry.setBounds(0, (map.length - 2) * MapBlock.SIZE, getWidth(), MapBlock.SIZE);
+	        		retry.addMouseListener(this);
+	        		add(retry);
+            	}
+            }
 		}
 		repaint();
 	}
@@ -380,16 +537,14 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 	}
 
 	private static void runGame() {
-		Level level = new Level("levels/level15.txt");
 		JFrame frame = new JFrame("Level 15");
-		frame.addKeyListener(level);
+		Level level = new Level(15, frame, null);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.addMouseListener(level);
 		frame.addMouseMotionListener(level);
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.add(level);
 		frame.pack();
 		frame.setVisible(true);
-		insets = frame.getInsets();
 	}
 
 	public static void main(String[] args) {
