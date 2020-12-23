@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -26,18 +27,16 @@ public class SettingScreen extends JPanel {
 	private GridLayout layout;
 	private JSlider volumeSlider = new JSlider();
 	private Hashtable<Integer, JLabel> labels = new Hashtable<>();
-	private static final Font TITLE_FONT = new Font("Serif", Font.BOLD, 50);
-	private static final Font OPTION_FONT = new Font("Serif", Font.BOLD, 25);
-	private static final Font SLIDER_FONT = new Font("Serif", Font.BOLD, 12);
+	private static final Font TITLE_FONT = new Font("Courier New", Font.BOLD, 100);
+	private static final Font OPTION_FONT = new Font("Courier New", Font.BOLD, 25);
+	private static final Font SLIDER_FONT = new Font("Courier New", Font.BOLD, 12);
 
 	SettingScreen(JFrame frame) {
 
 		// Setting up Frame and Layout and adding HashTable Labels
 		this.frame = frame;
-		frame.setPreferredSize(new Dimension(600, 350));
 		this.setBackground(Color.BLACK);
-		this.setLayout(new GridBagLayout());
-		GridBagConstraints c = new GridBagConstraints();
+		this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		sliderOptions = new ArrayList<JLabel>();
 		sliderOptions.add(new JLabel("MUTE"));
 		sliderOptions.add(new JLabel("LOW"));
@@ -59,24 +58,22 @@ public class SettingScreen extends JPanel {
 		title.setFont(TITLE_FONT);
 		title.setForeground(Color.RED);
 		title.setAlignmentX(JLabel.CENTER_ALIGNMENT);
-		c.gridx = 0;
-		c.gridy = 0;
-		this.add(title, c);
+		this.add(Box.createVerticalStrut(100));
+		this.add(title);
 
 		// Setting up Setting Options
 		OptionPanel = new JPanel();
 		OptionPanel.setBackground(Color.BLACK);
 
 		// Volume
-		c.gridy = 1;
 		Volume = new JLabel("Volume");
 		Volume.setAlignmentX(JLabel.LEFT_ALIGNMENT);
 		Volume.setFont(OPTION_FONT);
 		Volume.setForeground(Color.white);
 		OptionPanel.add(Volume);
+		OptionPanel.add(Box.createHorizontalStrut(20));
 
 		// Volume Slider
-		c.gridx = 1;
 		volumeSlider.setBackground(Color.black);
 		volumeSlider.setForeground(Color.white);
 		volumeSlider.setMaximum(75);
@@ -88,8 +85,8 @@ public class SettingScreen extends JPanel {
 		volumeSlider.setPaintLabels(true);
 
 		OptionPanel.add(volumeSlider);
-
-		this.add(OptionPanel, c);
+		this.add(Box.createVerticalStrut(200));
+		this.add(OptionPanel);
 
 	}
 }

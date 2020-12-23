@@ -304,21 +304,28 @@ public class Player {
 		return output;
 	}
 	
+	// Merge all adjacent crying player blocks into the player
 	public ArrayList<PlayerBlock> merge(MapBlock[][] map) {
+		// Breadth-first search implementation using LinkedList Queue
 		Queue<Point> queue = new LinkedList<Point>();
 		int[][] offsets = new int[][] { { 1, 0 }, { 0, 1 }, { -1, 0 }, { 0, -1 } };
 		ArrayList<PlayerBlock> mergedBlocks = new ArrayList<PlayerBlock>();
+		// Place the positions of all current player blocks into the queue
 		for (PlayerBlock block : playerBlocks) {
 			queue.offer(block.getWorldCoords());
 		}
+		// While there are positions in the queue
 		while (!queue.isEmpty()) {
 			Point currPos = queue.poll();
+			// For each of the 4 blocks adjacent to the polled position
 			for (int[] offset : offsets) {
 				int testX = currPos.x + offset[0];
 				int testY = currPos.y + offset[1];
+				// Check to see if the block is valid and an instance of CryingPlayerBlock
 				if (isValidBlock(map, testX, testY)) {
 					PlayerBlock newPBlock = new PlayerBlock(testX, testY, Color.RED);
 					if (map[testY][testX] instanceof CryingPlayerBlock && !mergedBlocks.contains(newPBlock)) {
+						// If so, merge the CryingPlayerBlock into a PlayerBlock and add its position to the queue
 						mergedBlocks.add(newPBlock);
 						queue.offer(new Point(testX, testY));
 					}
