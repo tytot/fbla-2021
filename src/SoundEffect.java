@@ -4,7 +4,7 @@ import java.net.URL;
 import javax.sound.sampled.*;
 
 public enum SoundEffect {
-	HIT(""), MISS(""), BG(""), CONGRATS("");
+	PLATE_CLICK("res/audio/beep-07.wav"), MISS("res/audio/pick-up.wav"), BG("res/audio/music.wav"), CONGRATS("");
 
 	// Nested class for specifying volume
 	public static enum Volume {
@@ -20,7 +20,7 @@ public enum SoundEffect {
 	SoundEffect(String soundFileName) {
 		try {
 			// Use URL (instead of File) to read from disk and JAR.
-			URL url = this.getClass().getResource(soundFileName);
+			File url = new File(soundFileName);
 			// Set up an audio input stream piped from the sound file.
 			AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(url);
 			// Get a clip resource.

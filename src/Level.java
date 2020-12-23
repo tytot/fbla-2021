@@ -40,6 +40,7 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 //	};
 
 	Level(String filePath) {
+		SoundEffect.BG.play(true);
 		setLayout(null);
 		try {
 			List<String> lines = Files.readAllLines(Paths.get(filePath));
@@ -263,6 +264,8 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 			}
 		}
 		player.resetPositions(startingPositions);
+		SoundEffect.BG.stop();
+		SoundEffect.BG.play(true);
 		resetPowerUps();
 	}
 
@@ -366,6 +369,7 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 		}
 		if (player.reachedGoal(goalBlocks, map)) {
 			System.out.println("checkpoint");
+			SoundEffect.PLATE_CLICK.play(false);
 		}
 		repaint();
 	}
