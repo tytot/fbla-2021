@@ -3,7 +3,7 @@ import java.awt.Point;
 
 public class PlayerBlock {
 
-	public static int SIZE = 50;
+	public static int SIZE = 40;
 
 	private Point worldCoords;
 	private Point pixelCoords;
