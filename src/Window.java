@@ -20,7 +20,7 @@ class Window {
 		testSettingPanel = new SettingScreen(frame);
 		// menuBar = new MenuBar(currentScreenPanel);
 		// frame.setJMenuBar(menuBar);
-		frame.setContentPane(testSettingPanel);
+		frame.setContentPane(currentScreenPanel);
 		frame.pack();
 		frame.setVisible(true);
 	}
