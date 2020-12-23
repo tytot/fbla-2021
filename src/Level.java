@@ -3,6 +3,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -17,11 +18,12 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 	private MapBlock[][] map, startMap;
 	private ArrayList<Point> startingPositions = new ArrayList<Point>();
 	private ArrayList<Point> goalBlocks = new ArrayList<Point>();
-    private JLabel[][] powerUps;
-    private JLabel reset;
-	private ArrayList<Point> powerUpPos = new ArrayList<Point>();
+	private JLabel[][] powerUps;
 	private int[] storedPowerUps = { 0, 0, 0 };
 	private Player player = new Player();
+	
+	private JLabel reset, growCounter, splitCounter, mergeCounter;
+	private Font labelFont = new Font("Courier New", Font.BOLD, MapBlock.SIZE);
 
 //	private final HashMap<Point, Rectangle> sides = new HashMap<Point, Rectangle>() {
 //		{
@@ -68,6 +70,7 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 				}
 			}
 			resetPowerUps();
+			addLabels();
 			for (int i = 0; i < map.length; i++) {
 				for (int j = 0; j < map[i].length; j++) {
 					startMap[i][j] = map[i][j];
@@ -76,36 +79,51 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		reset = new JLabel("Reset");
-		reset.addMouseListener(new MouseListener() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				if(e.getComponent() == reset) {
-					resetLevel();
-				}
-			}
-
-			@Override
-			public void mousePressed(MouseEvent e) {
-
-			}
-
-			@Override
-			public void mouseReleased(MouseEvent e) {
-
-			}
-
-			@Override
-			public void mouseEntered(MouseEvent e) {
-
-			}
-
-			@Override
-			public void mouseExited(MouseEvent e) {
-
-			}
-		});
+	}
+	
+	private void addLabels() throws MalformedURLException {
+		reset = new JLabel("RESET");
+		reset.setForeground(Color.WHITE);
+		reset.setFont(labelFont);
+		reset.addMouseListener(this);
+		reset.setBounds(MapBlock.SIZE, 0, 3 * MapBlock.SIZE, MapBlock.SIZE);
 		add(reset);
+		
+		ImageIcon gImgIcon = new ImageIcon(new File(new GrowPowerUp().imagePath()).toURI().toURL());
+		gImgIcon.setImage(gImgIcon.getImage().getScaledInstance(MapBlock.SIZE, MapBlock.SIZE, Image.SCALE_DEFAULT));
+		JLabel growIcon = new JLabel(gImgIcon);
+		growIcon.setBounds(5 * MapBlock.SIZE, 0, MapBlock.SIZE, MapBlock.SIZE);
+		add(growIcon);
+		growCounter = new JLabel("x0");
+		growCounter.setForeground(Color.WHITE);
+		growCounter.setFont(labelFont);
+		growCounter.addMouseListener(this);
+		growCounter.setBounds(6 * MapBlock.SIZE, 0, 2 * MapBlock.SIZE, MapBlock.SIZE);
+		add(growCounter);
+		
+		ImageIcon sImgIcon = new ImageIcon(new File(new SplitPowerUp().imagePath()).toURI().toURL());
+		sImgIcon.setImage(sImgIcon.getImage().getScaledInstance(MapBlock.SIZE, MapBlock.SIZE, Image.SCALE_DEFAULT));
+		JLabel splitIcon = new JLabel(sImgIcon);
+		splitIcon.setBounds(8 * MapBlock.SIZE, 0, MapBlock.SIZE, MapBlock.SIZE);
+		add(splitIcon);
+		splitCounter = new JLabel("x0");
+		splitCounter.setForeground(Color.WHITE);
+		splitCounter.setFont(labelFont);
+		splitCounter.addMouseListener(this);
+		splitCounter.setBounds(9 * MapBlock.SIZE, 0, 2 * MapBlock.SIZE, MapBlock.SIZE);
+		add(splitCounter);
+		
+		ImageIcon mImgIcon = new ImageIcon(new File(new MergePowerUp().imagePath()).toURI().toURL());
+		mImgIcon.setImage(mImgIcon.getImage().getScaledInstance(MapBlock.SIZE, MapBlock.SIZE, Image.SCALE_DEFAULT));
+		JLabel mergeIcon = new JLabel(mImgIcon);
+		mergeIcon.setBounds(11 * MapBlock.SIZE, 0, MapBlock.SIZE, MapBlock.SIZE);
+		add(mergeIcon);
+		mergeCounter = new JLabel("x0");
+		mergeCounter.setForeground(Color.WHITE);
+		mergeCounter.setFont(labelFont);
+		mergeCounter.addMouseListener(this);
+		mergeCounter.setBounds(12 * MapBlock.SIZE, 0, 2 * MapBlock.SIZE, MapBlock.SIZE);
+		add(mergeCounter);
 	}
 
 	public void paintComponent(Graphics g) {
@@ -118,21 +136,6 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 				g2.fillRect(j * MapBlock.SIZE, i * MapBlock.SIZE, MapBlock.SIZE, MapBlock.SIZE);
 			}
 		}
-
-		g2.setColor(Color.white);
-		g2.setFont(new Font("Serif", Font.BOLD, 50));
-		g2.drawString("Reset", 100, 50);
-
-		for(int i = 0; i < storedPowerUps.length; i++) {
-			if (i == 0) {
-				g2.drawString("G x " + storedPowerUps[i], 400, 50);
-			} else if (i == 1) {
-				g2.drawString("S x " + storedPowerUps[i], 600, 50);
-			} else if (i == 2) {
-				g2.drawString("M x " + storedPowerUps[i], 800, 50);
-			}
-		}
-
 		ArrayList<PlayerBlock> pBlocks = player.getBlocks();
 		for (PlayerBlock pBlock : pBlocks) {
 			g2.setColor(Color.RED);
@@ -190,7 +193,7 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 						map[worldCoords.y][worldCoords.x] = new SpaceBlock();
 						player.addBlock(worldCoords.x, worldCoords.y, Color.RED);
 					}
-					storedPowerUps[2]--;
+					mergeCounter.setText("x" + --storedPowerUps[2]);
 				}
 			}
 		}
@@ -216,7 +219,11 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 
 	@Override
 	public void mouseClicked(MouseEvent arg0) {
-		if (player.getMovement() == Movement.STILL && player.isFalling()) {
+		if (arg0.getComponent() == reset) {
+			System.out.println("reset");
+			resetLevel();
+			resetPowerUps();
+		} else if (player.getMovement() == Movement.STILL && player.isFalling()) {
 			int state = player.getState();
 			if (state == Player.NORMAL) {
 				if (SwingUtilities.isRightMouseButton(arg0) && storedPowerUps[0] > 0) {
@@ -227,12 +234,12 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 			} else if (state == Player.BUILDING) {
 				if (player.getHighlightedBlock() != null) {
 					player.confirmBuild();
-					storedPowerUps[0]--;
+					growCounter.setText("x" + --storedPowerUps[0]);
 				}
 			} else if (state == Player.SPLITTING) {
 				if (player.getSplitLine() != null) {
 					player.splitIntoSides();
-					storedPowerUps[1]--;
+					splitCounter.setText("x" + --storedPowerUps[1]);
 				}
 			} else if (state == Player.CHOOSING) {
 				int chosenSide = player.getChosenSide();
@@ -286,11 +293,11 @@ public class Level extends JPanel implements KeyListener, MouseListener, MouseMo
 					pBlock.getWorldCoords().y);
 			if (powerUps[check.y][check.x] != null) {
 				if (map[check.y][check.x] instanceof GrowPowerUp) {
-					storedPowerUps[0]++;
+					growCounter.setText("x" + ++storedPowerUps[0]);
 				} else if (map[check.y][check.x] instanceof SplitPowerUp) {
-					storedPowerUps[1]++;
+					splitCounter.setText("x" + ++storedPowerUps[1]);
 				} else if (map[check.y][check.x] instanceof MergePowerUp) {
-					storedPowerUps[2]++;
+					mergeCounter.setText("x" + ++storedPowerUps[2]);
 				}
 				remove(powerUps[check.y][check.x]);
 				powerUps[check.y][check.x] = null;
