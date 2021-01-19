@@ -1,9 +1,12 @@
-
+import java.io.IOException;
 
 public class GrowPowerUp extends PowerUp {
 
-	public String imagePath() {
-		return "res/img/grow.gif";
+	GrowPowerUp() throws IOException {
+		super();
 	}
 
+	public String imagePath() {
+		return "src/res/img/sprites/powerups/grow.png";
+	}
 }

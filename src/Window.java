@@ -1,39 +1,37 @@
 
 import java.awt.Dimension;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.time.LocalDate;
 
 import javax.swing.*;
 
 class Window {
 	private JFrame frame;
-	// private MenuBar menuBar;
-	boolean isMainScreen;
-	boolean isEditActionItemScreen;
-	
-	private final Dimension d = new Dimension(33, 23);
-	
-	public static long startTime, endTime;
+	private final Dimension d = new Dimension(33, 24);
+	private SoundEffect music = new SoundEffect(SoundEffect.MUSIC,
+	-10f);
 
 	Window() {
 		frame = new JFrame("The Puzzled Cube");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		JPanel currentScreenPanel = new MainScreen(frame);
-		frame.setContentPane(currentScreenPanel);
+		frame.setResizable(false);
+		frame.setPreferredSize(new Dimension(d.width * MapBlock.SIZE,
+		d.height * MapBlock.SIZE));
+		frame.setMinimumSize(new Dimension(d.width * MapBlock.SIZE,
+		d.height * MapBlock.SIZE));
+		frame.setMaximumSize(new Dimension(d.width * MapBlock.SIZE,
+		d.height * MapBlock.SIZE));
+		frame.setContentPane(new MainScreen(frame));
 		frame.pack();
 		frame.setVisible(true);
-		frame.setPreferredSize(new Dimension(d.width * MapBlock.SIZE, d.height * MapBlock.SIZE));
-		frame.setMinimumSize(new Dimension(d.width * MapBlock.SIZE, d.height * MapBlock.SIZE));
-		frame.setMaximumSize(new Dimension(d.width * MapBlock.SIZE, d.height * MapBlock.SIZE));
+
+		music.play(true);
 	}
 
 	private static void runGUI() {
-		startTime = System.currentTimeMillis();
 		new Window();
 	}
 
 	public static void main(String[] args) {
+		System.setProperty("sun.java2d.uiScale", "1");
 		javax.swing.SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				runGUI();

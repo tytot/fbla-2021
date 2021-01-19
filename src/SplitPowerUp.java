@@ -1,9 +1,12 @@
-
+import java.io.IOException;
 
 public class SplitPowerUp extends PowerUp {
 
-	public String imagePath() {
-		return "res/img/split.gif";
+	SplitPowerUp() throws IOException {
+		super();
 	}
 
+	public String imagePath() {
+		return "src/res/img/sprites/powerups/split.png";
+	}
 }

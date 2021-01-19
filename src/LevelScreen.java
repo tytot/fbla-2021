@@ -4,15 +4,27 @@ import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import java.awt.Image;
 import java.awt.Insets;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
+
+import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -21,199 +33,156 @@ import javax.swing.SwingConstants;
 
 public class LevelScreen extends JPanel implements ActionListener {
 	private JFrame frame;
-	private JPanel titlePanel, level1, level2, level3, level4;
-	private JLabel title;
-	private ArrayList<JButton[]> levels = new ArrayList<JButton[]>();
-	private int currentCard = 1;
-	private CardLayout cl;
-	private GridLayout layout, buttonLayout;
-	private static final Font TITLE_FONT = new Font("Courier New", Font.BOLD, 100);
+	private Image bg;
+
+	private JButton[] buttons = new JButton[6];
+	private JButton[] allButtons = new JButton[24];
+	private JButton exit;
+	private JButton lastPage, nextPage;
+	private JLabel pageNum;
+	private int page = 1;
+	private JPanel grid;
+	private GridBagConstraints gbc;
+	private Font font = FontLoader.loadFont("src/res/font.ttf", 36);
+
+	private SoundEffect click = new SoundEffect(SoundEffect.CLICK);
 
 	LevelScreen(JFrame frame) {
-
-		// Setting up Frame and layout
 		this.frame = frame;
-		this.setBackground(Color.BLACK);
-		this.setLayout(new GridBagLayout());
-		GridBagConstraints c = new GridBagConstraints();
+		setPreferredSize(
+		new Dimension(33 * Block.SIZE, 24 * Block.SIZE));
+		setLayout(null);
+		try {
+			bg = ImageIO
+			.read(new File("src/res/img/backgrounds/grasslands.png"));
 
-		// Setting up the Title
-		titlePanel = new JPanel();
-		titlePanel.setBackground(Color.BLACK);
-		title = new JLabel("Levels", SwingConstants.CENTER);
-		title.setFont(TITLE_FONT);
-		title.setForeground(Color.RED);
-		titlePanel.add(title);
-		c.gridx = 0;
-		c.gridy = 0;
-		c.fill = GridBagConstraints.VERTICAL;
-		this.add(titlePanel, c);
+			exit = initializeButton("src/res/img/ui/exit.png",
+			"src/res/img/ui/exitPressed.png");
+			exit.setBounds(30, 15, 70, 70);
+			add(exit);
 
-		// Setting up different levels
-		final JPanel cardPanel = new JPanel();
-		c.gridy = 1;
-		c.anchor = GridBagConstraints.CENTER;
-		cl = new CardLayout();
-		cardPanel.setLayout(cl);
-		layout = new GridLayout(0, 3);
-
-		// Setting up First Level Set
-		level1 = new JPanel();
-		level1.setBackground(Color.black);
-		level1.setLayout(layout);
-		level1.setBorder(BorderFactory.createEmptyBorder(30, 0, 0, 0));
-		JButton[] level1Buttons = new JButton[6];
-		for (int i = 0; i < level1Buttons.length; i++) {
-			level1Buttons[i] = new JButton(String.valueOf(i + 1));
-		}
-		levels.add(level1Buttons);
-		for (JButton level : levels.get(0)) {
-			level.setPreferredSize(new Dimension(120, 70));
-			level.setBackground(Color.BLACK);
-			level.setFont(new Font("Courier New", Font.BOLD, 50));
-			level.setForeground(Color.WHITE);
-			level.setFocusPainted(false);
-			level.setBorder(BorderFactory.createMatteBorder(2, 2, 2, 2, Color.red));
-			level.addActionListener(this);
-			level.setActionCommand(level.getText());
-			level1.add(level);
-		}
-		layout.setHgap(100);
-		layout.setVgap(50);
-		level1.add(Box.createVerticalGlue());
-		cardPanel.add(level1, "1");
-
-		// Setting up Second Level Set
-		level2 = new JPanel();
-		level2.setBackground(Color.black);
-		level2.setLayout(layout);
-		level2.setBorder(BorderFactory.createEmptyBorder(30, 0, 0, 0));
-		JButton[] level2Buttons = new JButton[6];
-		for (int i = 0; i < level2Buttons.length; i++) {
-			level2Buttons[i] = new JButton(String.valueOf(i + 7));
-		}
-		levels.add(level2Buttons);
-		for (JButton level : levels.get(1)) {
-			level.setPreferredSize(new Dimension(120, 70));
-			level.setBackground(Color.BLACK);
-			level.setFont(new Font("Courier New", Font.BOLD, 50));
-			level.setForeground(Color.WHITE);
-			level.setFocusPainted(false);
-			level.setBorder(BorderFactory.createMatteBorder(2, 2, 2, 2, Color.red));
-			level.addActionListener(this);
-			level.setActionCommand(level.getText());
-			level2.add(level);
-		}
-		layout.setHgap(100);
-		layout.setVgap(50);
-		level2.add(Box.createVerticalGlue());
-		cardPanel.add(level2, "2");
-
-		// Setting up Third Level Set
-		level3 = new JPanel();
-		level3.setBackground(Color.black);
-		level3.setLayout(layout);
-		level3.setBorder(BorderFactory.createEmptyBorder(30, 0, 0, 0));
-		JButton[] level3Buttons = new JButton[6];
-		for (int i = 0; i < level1Buttons.length; i++) {
-			level1Buttons[i] = new JButton(String.valueOf(i + 13));
-		}
-		levels.add(level3Buttons);
-		for (JButton level : levels.get(0)) {
-			level.setPreferredSize(new Dimension(120, 70));
-			level.setBackground(Color.BLACK);
-			level.setFont(new Font("Courier New", Font.BOLD, 50));
-			level.setForeground(Color.WHITE);
-			level.setFocusPainted(false);
-			level.setBorder(BorderFactory.createMatteBorder(2, 2, 2, 2, Color.red));
-			level.addActionListener(this);
-			level.setActionCommand(level.getText());
-			level3.add(level);
-		}
-		layout.setHgap(100);
-		layout.setVgap(50);
-		level3.add(Box.createVerticalGlue());
-		cardPanel.add(level3, "3");
-
-		// Setting up Fourth Level Set
-		level4 = new JPanel();
-		level4.setBackground(Color.black);
-		level4.setLayout(layout);
-		level4.setBorder(BorderFactory.createEmptyBorder(30, 0, 0, 0));
-		JButton[] level4Buttons = new JButton[6];
-		for (int i = 0; i < level4Buttons.length; i++) {
-			level1Buttons[i] = new JButton(String.valueOf(i + 19));
-		}
-		levels.add(level4Buttons);
-		for (JButton level : levels.get(0)) {
-			level.setPreferredSize(new Dimension(120, 70));
-			level.setBackground(Color.BLACK);
-			level.setFont(new Font("Courier New", Font.BOLD, 50));
-			level.setForeground(Color.WHITE);
-			level.setFocusPainted(false);
-			level.setBorder(BorderFactory.createMatteBorder(2, 2, 2, 2, Color.red));
-			level.addActionListener(this);
-			level.setActionCommand(level.getText());
-			level4.add(level);
-		}
-		layout.setHgap(100);
-		layout.setVgap(50);
-		level4.add(Box.createVerticalGlue());
-		cardPanel.add(level4, "4");
-
-		c.insets = new Insets(125, 0, 0, 0);
-		this.add(cardPanel, c);
-
-		JPanel buttonPanel = new JPanel();
-		buttonLayout = new GridLayout(1, 0);
-		buttonLayout.setHgap(50);
-		buttonPanel.setLayout(buttonLayout);
-		buttonPanel.setBackground(Color.black);
-		// Add Back Button
-		JButton back = new JButton("Previous");
-		back.setBackground(Color.black);
-		back.setFont(new Font("Courier New", Font.BOLD, 50));
-		back.setForeground(Color.white);
-		back.setFocusPainted(false);
-
-		buttonPanel.add(back);
-
-		// Add Next Button
-		JButton next = new JButton("Next");
-		next.setBackground(Color.black);
-		next.setFont(new Font("Courier New", Font.BOLD, 50));
-		next.setForeground(Color.white);
-		next.setFocusPainted(false);
-		buttonPanel.add(next);
-
-		next.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				if (currentCard < 4) {
-					currentCard += 1;
-					cl.show(cardPanel, "" + (currentCard));
-				}
+			JPanel container = new JPanel();
+			container.setOpaque(false);
+			container
+			.setLayout(new BoxLayout(container, BoxLayout.Y_AXIS));
+			container.setBounds(0, 0, frame.getWidth(),
+			frame.getHeight());
+			container.add(Box.createVerticalStrut(100));
+			JLabel levelsLabel = new JLabel(
+			new ImageIcon("src/res/img/ui/levelsPressed.png"));
+			levelsLabel.setAlignmentX(CENTER_ALIGNMENT);
+			container.add(levelsLabel);
+			grid = new JPanel();
+			grid.setOpaque(false);
+			grid.setLayout(new GridBagLayout());
+			gbc = new GridBagConstraints();
+			gbc.insets = new Insets(50, 50, 50, 50);
+			for (int i = 0; i < 24; i++) {
+				allButtons[i] = new LevelButton(i + 1);
+				allButtons[i].setActionCommand("Level " + (i + 1));
+				allButtons[i].addActionListener(this);
 			}
-		});
-
-		back.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				if (currentCard > 1) {
-					currentCard -= 1;
-					cl.show(cardPanel, "" + (currentCard));
-				}
+			for (int i = 0; i < 6; i++) {
+				buttons[i] = allButtons[i];
+				gbc.gridx = i % 3;
+				gbc.gridy = i / 3;
+				grid.add(buttons[i], gbc);
 			}
-		});
+			grid.setAlignmentX(CENTER_ALIGNMENT);
+			container.add(grid);
+			JPanel navigation = new JPanel();
+			navigation.setOpaque(false);
+			lastPage = initializeButton(
+			"src/res/img/ui/lastLevel.png",
+			"src/res/img/ui/lastLevelPressed.png");
+			navigation.add(lastPage);
+			pageNum = new JLabel(page + " / 4");
+			pageNum.setFont(font);
+			pageNum.setForeground(Color.WHITE);
+			navigation.add(pageNum);
+			nextPage = initializeButton(
+			"src/res/img/ui/nextLevel.png",
+			"src/res/img/ui/nextLevelPressed.png");
+			navigation.add(nextPage);
+			navigation.setAlignmentX(CENTER_ALIGNMENT);
+			container.add(navigation);
+			container.add(Box.createVerticalStrut(100));
+			add(container);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 
-		c.gridy = 2;
-		this.add(buttonPanel, c);
+	private JButton initializeButton(String imgPath,
+	String pressedImgPath) {
+		JButton b = new JButton(new ImageIcon(imgPath));
+		b.setPressedIcon(new ImageIcon(pressedImgPath));
+		b.setContentAreaFilled(false);
+		b.setBorderPainted(false);
+		b.setFocusPainted(false);
+		b.addActionListener(this);
+		return b;
+	}
+
+	public void paintComponent(Graphics g) {
+		drawBackground(g);
+	}
+
+	public void drawBackground(Graphics g) {
+		Dimension size = getPreferredSize();
+		double ratio = size.getWidth() / size.getHeight();
+		double imgRatio = (double) bg.getWidth(this)
+		/ bg.getHeight(this);
+		int width, height;
+		if (ratio > imgRatio) {
+			width = (int) size.getWidth();
+			height = (int) (size.getWidth() / bg.getWidth(this)
+			* bg.getHeight(this));
+		} else {
+			height = (int) size.getHeight();
+			width = (int) (ratio * height);
+		}
+		g.drawImage(bg, -(width - (int) size.getWidth()) / 2,
+		-(height - (int) size.getHeight()) / 2, width, height, this);
 	}
 
 	@Override
-	public void actionPerformed(ActionEvent arg0) {
-		int level = Integer.parseInt(arg0.getActionCommand());
-		frame.setContentPane(new Level(level, frame, this));
+	public void actionPerformed(ActionEvent e) {
+		String cmd = e.getActionCommand();
+		if (cmd.startsWith("Level ")) {
+			frame.setContentPane(
+			new Level(Integer.parseInt(cmd.substring(6)),
+			"src/res/img/backgrounds/grasslands.png", frame, this));
+		} else if (e.getSource() == lastPage) {
+			if (page == 1) {
+				page = 4;
+			} else {
+				page--;
+			}
+			newPage();
+		} else if (e.getSource() == nextPage) {
+			if (page == 4) {
+				page = 1;
+			} else {
+				page++;
+			}
+			newPage();
+		} else if (e.getSource() == exit) {
+			frame.setContentPane(new MainScreen(frame));
+		}
+		click.play(false);
 		frame.repaint();
 		frame.revalidate();
 	}
 
+	private void newPage() {
+		pageNum.setText(page + " / 4");
+		for (int i = 0; i < 6; i++) {
+			grid.remove(buttons[i]);
+			buttons[i] = allButtons[6 * (page - 1) + i];
+			gbc.gridx = i % 3;
+			gbc.gridy = i / 3;
+			grid.add(buttons[i], gbc);
+		}
+	}
 }

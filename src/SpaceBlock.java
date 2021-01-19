@@ -1,13 +1,15 @@
 
-import java.awt.Color;
+import java.awt.Image;
 
 public class SpaceBlock extends MapBlock {
 
-	public Color getColor() {
-		return Color.BLACK;
-	}
-
 	public boolean isSolid() {
 		return false;
+	}
+
+	@Override
+	public Image getImage() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

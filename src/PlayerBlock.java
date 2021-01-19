@@ -1,23 +1,32 @@
-import java.awt.Color;
+import java.awt.Image;
 import java.awt.Point;
+import java.io.File;
+import java.io.IOException;
 
-public class PlayerBlock {
+import javax.imageio.ImageIO;
 
-	public static int SIZE = 40;
+public class PlayerBlock extends Block {
 
 	private Point worldCoords;
 	private Point pixelCoords;
-	private Color color;
+	private int relativePosition;
+	private Image img;
+	private final String NORMAL_PATH = "src/res/img/sprites/player/body";
+	private final String SMALL_PATH = "src/res/img/sprites/player/small/body";
+	private String imgPathPrefix = NORMAL_PATH;
+	private boolean onGoalBlock = false;
 
 	PlayerBlock(int worldX, int worldY) {
 		this.worldCoords = new Point(worldX, worldY);
-		this.pixelCoords = new Point(worldX * SIZE, worldY * SIZE);
+		this.pixelCoords = new Point(worldX * Block.SIZE,
+		worldY * Block.SIZE);
 	}
 
-	PlayerBlock(int worldX, int worldY, Color color) {
-		this.worldCoords = new Point(worldX, worldY);
-		this.pixelCoords = new Point(worldX * SIZE, worldY * SIZE);
-		this.color = color;
+	PlayerBlock(PlayerBlock other) {
+		this.worldCoords = new Point(other.getWorldCoords());
+		this.pixelCoords = new Point(this.worldCoords.x * Block.SIZE,
+		this.worldCoords.y * Block.SIZE);
+		setRelativePosition(other.getRelativePosition());
 	}
 
 	public Point getWorldCoords() {
@@ -28,23 +37,53 @@ public class PlayerBlock {
 		return pixelCoords;
 	}
 
-	public Color getColor() {
-		return color;
+	public int getRelativePosition() {
+		return relativePosition;
 	}
-	
-	public void setColor(Color color) {
-		this.color = color;
+
+	public boolean isOnGoalBlock() {
+		return onGoalBlock;
 	}
-	
+
+	public void setOnGoalBlock(boolean onGoalBlock) {
+		this.onGoalBlock = onGoalBlock;
+		if (onGoalBlock) {
+			imgPathPrefix = SMALL_PATH;
+		} else {
+			imgPathPrefix = NORMAL_PATH;
+		}
+	}
+
+	public String getImagePathPrefix() {
+		return imgPathPrefix;
+	}
+
+	public void setRelativePosition(int relativePos) {
+		relativePosition = relativePos;
+		try {
+			String path = getImagePathPrefix()
+			+ ends[relativePosition] + ".png";
+			img = ImageIO.read(new File(path));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
 	@Override
 	public int hashCode() {
 		return worldCoords.hashCode();
 	}
-	
+
 	@Override
 	public boolean equals(Object obj) {
 		if (!(obj instanceof PlayerBlock))
 			return false;
-		return worldCoords.equals(((PlayerBlock) obj).getWorldCoords());
+		return worldCoords
+		.equals(((PlayerBlock) obj).getWorldCoords());
+	}
+
+	@Override
+	public Image getImage() {
+		return img;
 	}
 }

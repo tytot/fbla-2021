@@ -1,16 +1,24 @@
+import java.awt.Image;
+import java.io.File;
+import java.io.IOException;
 
-
-import java.awt.Color;
+import javax.imageio.ImageIO;
 
 public abstract class PowerUp extends MapBlock {
-	
-	public Color getColor() {
-		return Color.BLACK;
+
+	private Image img;
+
+	PowerUp() throws IOException {
+		img = ImageIO.read(new File(imagePath()));
 	}
 
 	public boolean isSolid() {
 		return false;
 	}
-	
+
 	public abstract String imagePath();
+
+	public Image getImage() {
+		return img;
+	}
 }

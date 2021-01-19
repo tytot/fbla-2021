@@ -1,11 +1,8 @@
+import java.awt.Image;
 
-import java.awt.Color;
-
-public abstract class MapBlock {
-
-	public static final int SIZE = 40;
-
-	public abstract Color getColor();
+public abstract class MapBlock extends Block {
 
 	public abstract boolean isSolid();
+
+	public abstract Image getImage();
 }
