@@ -25,11 +25,10 @@ public class Player {
 	public static final int CHOOSING = 3;
 
 	private int state = NORMAL;
-
+	
 	public void setState(int state) {
 		this.state = state;
 	}
-
 	public Movement getMovement() {
 		return movement;
 	}
@@ -79,8 +78,7 @@ public class Player {
 			}
 		}
 		for (PlayerBlock pBlock : playerBlocks) {
-			if (!blocksToSquish.contains(pBlock)
-			&& pBlock.isOnGoalBlock()) {
+			if (!blocksToSquish.contains(pBlock) && pBlock.isOnGoalBlock()) {
 				pBlock.setOnGoalBlock(false);
 				change = true;
 			}
@@ -90,21 +88,16 @@ public class Player {
 		}
 	}
 
-	public void calculateRelativePositions(
-	ArrayList<PlayerBlock> pBlocks) {
+	public void calculateRelativePositions(ArrayList<PlayerBlock> pBlocks) {
 		for (PlayerBlock pBlock : pBlocks) {
 			Point worldCoords = pBlock.getWorldCoords();
 			int x = worldCoords.x, y = worldCoords.y;
-			int leftIndex = playerBlocks
-			.indexOf(new PlayerBlock(x - 1, y));
-			int rightIndex = playerBlocks
-			.indexOf(new PlayerBlock(x + 1, y));
+			int leftIndex = playerBlocks.indexOf(new PlayerBlock(x - 1, y));
+			int rightIndex = playerBlocks.indexOf(new PlayerBlock(x + 1, y));
 			boolean left = leftIndex != -1;
 			boolean right = rightIndex != -1;
-			boolean top = playerBlocks
-			.contains(new PlayerBlock(x, y - 1));
-			boolean bottom = playerBlocks
-			.contains(new PlayerBlock(x, y + 1));
+			boolean top = playerBlocks.contains(new PlayerBlock(x, y - 1));
+			boolean bottom = playerBlocks.contains(new PlayerBlock(x, y + 1));
 			int relativePos;
 			if (left) {
 				// block to left
@@ -186,29 +179,24 @@ public class Player {
 				}
 			}
 			if (!pBlock.isOnGoalBlock()) {
-				boolean leftGoal = left
-				&& playerBlocks.get(leftIndex).isOnGoalBlock();
-				boolean rightGoal = right
-				&& playerBlocks.get(rightIndex).isOnGoalBlock();
+				boolean leftGoal = left && playerBlocks.get(leftIndex).isOnGoalBlock();
+				boolean rightGoal = right && playerBlocks.get(rightIndex).isOnGoalBlock();
 				if (leftGoal && !rightGoal) {
-					if (relativePos == Block.MIDDLE
-					|| relativePos == Block.CENTER)
+					if (relativePos == Block.MIDDLE || relativePos == Block.CENTER)
 						relativePos = Block.BOTTOM_LEFT;
 					else if (relativePos == Block.BOTTOM_RIGHT)
 						relativePos = Block.BOTTOM;
 					else if (relativePos == Block.RIGHT)
 						relativePos = Block.RIGHT_AND_BOTTOM_LEFT;
 				} else if (!leftGoal && rightGoal) {
-					if (relativePos == Block.MIDDLE
-					|| relativePos == Block.CENTER)
+					if (relativePos == Block.MIDDLE || relativePos == Block.CENTER)
 						relativePos = Block.BOTTOM_RIGHT;
 					else if (relativePos == Block.BOTTOM_LEFT)
 						relativePos = Block.BOTTOM;
 					else if (relativePos == Block.LEFT)
 						relativePos = Block.LEFT_AND_BOTTOM_RIGHT;
 				} else if (leftGoal && rightGoal) {
-					if (relativePos == Block.MIDDLE
-					|| relativePos == Block.CENTER)
+					if (relativePos == Block.MIDDLE || relativePos == Block.CENTER)
 						relativePos = Block.BOTTOM;
 				}
 			}
@@ -221,8 +209,7 @@ public class Player {
 	}
 
 	public void highlightBlock(int mouseX, int mouseY) {
-		PlayerBlock block = new Crosshair(mouseX / Block.SIZE,
-		mouseY / Block.SIZE);
+		PlayerBlock block = new Crosshair(mouseX / Block.SIZE, mouseY / Block.SIZE);
 		if (buildBlocks.contains(block)) {
 			highlightedBlock = block;
 		} else {
@@ -234,15 +221,12 @@ public class Player {
 		buildBlocks.clear();
 		for (PlayerBlock block : playerBlocks) {
 			Point worldPos = block.getWorldCoords();
-			for (int[] offset : new int[][] { { 1, 0 }, { 0, 1 },
-					{ -1, 0 }, { 0, -1 } }) {
+			for (int[] offset : new int[][] { { 1, 0 }, { 0, 1 }, { -1, 0 }, { 0, -1 } }) {
 				int testX = worldPos.x + offset[0];
 				int testY = worldPos.y + offset[1];
 				if (map.isValidBlock(testX, testY)) {
-					PlayerBlock testBlock = new PlayerBlock(testX,
-					testY);
-					if (!map.getBlocks()[testY][testX].isSolid()
-					&& !playerBlocks.contains(testBlock)) {
+					PlayerBlock testBlock = new PlayerBlock(testX, testY);
+					if (!map.getBlocks()[testY][testX].isSolid() && !playerBlocks.contains(testBlock)) {
 						buildBlocks.add(testBlock);
 					}
 				}
@@ -264,29 +248,22 @@ public class Player {
 		int yLine = (int) (Math.round((double) mouseY / Block.SIZE));
 		Point[] xSplitLine = null, ySplitLine = null;
 		int startY = yLine;
-		if (playerBlockAt(xLine - 1, startY)
-		&& playerBlockAt(xLine, startY)) {
-			while (playerBlockAt(xLine - 1, startY - 1)
-			&& playerBlockAt(xLine, startY - 1))
+		if (playerBlockAt(xLine - 1, startY) && playerBlockAt(xLine, startY)) {
+			while (playerBlockAt(xLine - 1, startY - 1) && playerBlockAt(xLine, startY - 1))
 				startY--;
 			int endY = startY + 1;
-			while (playerBlockAt(xLine - 1, endY)
-			&& playerBlockAt(xLine, endY))
+			while (playerBlockAt(xLine - 1, endY) && playerBlockAt(xLine, endY))
 				endY++;
-			xSplitLine = new Point[] { new Point(xLine, startY),
-					new Point(xLine, endY) };
+			xSplitLine = new Point[] { new Point(xLine, startY), new Point(xLine, endY) };
 		} else {
 			boolean topFound = true, bottomFound = true;
 			int topY = startY - 1;
-			while (topY >= 0 && (!playerBlockAt(xLine - 1, topY)
-			|| !playerBlockAt(xLine, topY)))
+			while (topY >= 0 && (!playerBlockAt(xLine - 1, topY) || !playerBlockAt(xLine, topY)))
 				topY--;
 			if (topY < 0)
 				topFound = false;
 			int bottomY = startY + 1;
-			while (bottomY < mapHeight
-			&& (!playerBlockAt(xLine - 1, bottomY)
-			|| !playerBlockAt(xLine, bottomY)))
+			while (bottomY < mapHeight && (!playerBlockAt(xLine - 1, bottomY) || !playerBlockAt(xLine, bottomY)))
 				bottomY++;
 			if (bottomY >= mapHeight)
 				bottomFound = false;
@@ -305,46 +282,35 @@ public class Player {
 			if (side == 0) {
 				int endY = topY + 1;
 				startY = topY;
-				while (playerBlockAt(xLine - 1, startY - 1)
-				&& playerBlockAt(xLine, startY - 1))
+				while (playerBlockAt(xLine - 1, startY - 1) && playerBlockAt(xLine, startY - 1))
 					startY--;
-				xSplitLine = new Point[] { new Point(xLine, startY),
-						new Point(xLine, endY) };
+				xSplitLine = new Point[] { new Point(xLine, startY), new Point(xLine, endY) };
 			} else if (side == 1) {
 				startY = bottomY;
 				int endY = startY + 1;
-				while (playerBlockAt(xLine - 1, endY)
-				&& playerBlockAt(xLine, endY))
+				while (playerBlockAt(xLine - 1, endY) && playerBlockAt(xLine, endY))
 					endY++;
-				xSplitLine = new Point[] { new Point(xLine, startY),
-						new Point(xLine, endY) };
+				xSplitLine = new Point[] { new Point(xLine, startY), new Point(xLine, endY) };
 			}
 		}
 
 		int startX = xLine;
-		if (playerBlockAt(startX, yLine - 1)
-		&& playerBlockAt(startX, yLine)) {
-			while (playerBlockAt(startX - 1, yLine - 1)
-			&& playerBlockAt(startX - 1, yLine))
+		if (playerBlockAt(startX, yLine - 1) && playerBlockAt(startX, yLine)) {
+			while (playerBlockAt(startX - 1, yLine - 1) && playerBlockAt(startX - 1, yLine))
 				startX--;
 			int endX = startX + 1;
-			while (playerBlockAt(endX, yLine - 1)
-			&& playerBlockAt(endX, yLine))
+			while (playerBlockAt(endX, yLine - 1) && playerBlockAt(endX, yLine))
 				endX++;
-			ySplitLine = new Point[] { new Point(startX, yLine),
-					new Point(endX, yLine) };
+			ySplitLine = new Point[] { new Point(startX, yLine), new Point(endX, yLine) };
 		} else {
 			boolean leftFound = true, rightFound = true;
 			int leftX = startX - 1;
-			while (leftX >= 0 && (!playerBlockAt(leftX, yLine - 1)
-			|| !playerBlockAt(leftX, yLine)))
+			while (leftX >= 0 && (!playerBlockAt(leftX, yLine - 1) || !playerBlockAt(leftX, yLine)))
 				leftX--;
 			if (leftX < 0)
 				leftFound = false;
 			int rightX = startX + 1;
-			while (rightX < mapWidth
-			&& (!playerBlockAt(rightX, yLine - 1)
-			|| !playerBlockAt(rightX, yLine)))
+			while (rightX < mapWidth && (!playerBlockAt(rightX, yLine - 1) || !playerBlockAt(rightX, yLine)))
 				rightX++;
 			if (rightX >= mapWidth)
 				rightFound = false;
@@ -363,19 +329,15 @@ public class Player {
 			if (side == 0) {
 				int endX = leftX + 1;
 				startX = leftX;
-				while (playerBlockAt(startX - 1, yLine - 1)
-				&& playerBlockAt(startX - 1, yLine))
+				while (playerBlockAt(startX - 1, yLine - 1) && playerBlockAt(startX - 1, yLine))
 					startX--;
-				ySplitLine = new Point[] { new Point(startX, yLine),
-						new Point(endX, yLine) };
+				ySplitLine = new Point[] { new Point(startX, yLine), new Point(endX, yLine) };
 			} else if (side == 1) {
 				startX = rightX;
 				int endX = startX + 1;
-				while (playerBlockAt(endX, yLine - 1)
-				&& playerBlockAt(endX, yLine))
+				while (playerBlockAt(endX, yLine - 1) && playerBlockAt(endX, yLine))
 					endX++;
-				ySplitLine = new Point[] { new Point(startX, yLine),
-						new Point(endX, yLine) };
+				ySplitLine = new Point[] { new Point(startX, yLine), new Point(endX, yLine) };
 			}
 		}
 
@@ -388,8 +350,7 @@ public class Player {
 			if (xSplitLine != null)
 				splitLine = xSplitLine;
 		} else {
-			if (Math.abs(mouseX - xLine * Block.SIZE) <= Math
-			.abs(mouseY - yLine * Block.SIZE))
+			if (Math.abs(mouseX - xLine * Block.SIZE) <= Math.abs(mouseY - yLine * Block.SIZE))
 				splitLine = xSplitLine;
 			else
 				splitLine = ySplitLine;
@@ -403,22 +364,16 @@ public class Player {
 	public void splitIntoSides() {
 		state = CHOOSING;
 		if (splitLine[0].x == splitLine[1].x) {
-			splitBlocks[0] = blocksConnectedTo(
-			new PlayerBlock(splitLine[0].x - 1, splitLine[0].y));
-			splitBlocks[1] = blocksConnectedTo(
-			new PlayerBlock(splitLine[0].x, splitLine[0].y));
+			splitBlocks[0] = blocksConnectedTo(new PlayerBlock(splitLine[0].x - 1, splitLine[0].y));
+			splitBlocks[1] = blocksConnectedTo(new PlayerBlock(splitLine[0].x, splitLine[0].y));
 		} else {
-			splitBlocks[0] = blocksConnectedTo(
-			new PlayerBlock(splitLine[0].x, splitLine[0].y - 1));
-			splitBlocks[1] = blocksConnectedTo(
-			new PlayerBlock(splitLine[0].x, splitLine[0].y));
+			splitBlocks[0] = blocksConnectedTo(new PlayerBlock(splitLine[0].x, splitLine[0].y - 1));
+			splitBlocks[1] = blocksConnectedTo(new PlayerBlock(splitLine[0].x, splitLine[0].y));
 		}
-		if (splitBlocks[0].size()
-		+ splitBlocks[1].size() > playerBlocks.size()) {
+		if (splitBlocks[0].size() + splitBlocks[1].size() > playerBlocks.size()) {
 			splitBlocks[0].clear();
 			for (PlayerBlock pBlock : playerBlocks) {
-				splitBlocks[0]
-				.add(new HighlightedPlayerBlock(pBlock));
+				splitBlocks[0].add(new HighlightedPlayerBlock(pBlock));
 			}
 			splitBlocks[1].clear();
 		}
@@ -427,18 +382,15 @@ public class Player {
 		splitLine = null;
 	}
 
-	private ArrayList<PlayerBlock> blocksConnectedTo(
-	PlayerBlock block) {
-		int[][] offsets = new int[][] { { 1, 0 }, { 0, 1 }, { -1, 0 },
-				{ 0, -1 } };
+	private ArrayList<PlayerBlock> blocksConnectedTo(PlayerBlock block) {
+		int[][] offsets = new int[][] { { 1, 0 }, { 0, 1 }, { -1, 0 }, { 0, -1 } };
 		boolean horizontalCut = splitLine[0].y == splitLine[1].y;
 		int splitLoc = splitLine[0].x;
 		if (horizontalCut)
 			splitLoc = splitLine[0].y;
 		ArrayList<PlayerBlock> output = new ArrayList<PlayerBlock>();
 		Queue<Point> queue = new LinkedList<Point>();
-		int x = block.getWorldCoords().x,
-		y = block.getWorldCoords().y;
+		int x = block.getWorldCoords().x, y = block.getWorldCoords().y;
 		queue.offer(new Point(x, y));
 		block = new HighlightedPlayerBlock(x, y);
 		output.add(block);
@@ -452,21 +404,15 @@ public class Player {
 				if (horizontalCut) {
 					if (block.getWorldCoords().y >= splitLoc)
 						notConsidered--;
-					otherSide = testX >= splitLine[0].x
-					&& testX < splitLine[1].x
-					&& testY == notConsidered;
+					otherSide = testX >= splitLine[0].x && testX < splitLine[1].x && testY == notConsidered;
 				} else {
 					if (block.getWorldCoords().x >= splitLoc)
 						notConsidered--;
-					otherSide = testY >= splitLine[0].y
-					&& testY < splitLine[1].y
-					&& testX == notConsidered;
+					otherSide = testY >= splitLine[0].y && testY < splitLine[1].y && testX == notConsidered;
 				}
 				if (!otherSide) {
-					PlayerBlock testBlock = new HighlightedPlayerBlock(
-					testX, testY);
-					if (playerBlocks.contains(testBlock)
-					&& !output.contains(testBlock)) {
+					PlayerBlock testBlock = new HighlightedPlayerBlock(testX, testY);
+					if (playerBlocks.contains(testBlock) && !output.contains(testBlock)) {
 						queue.offer(new Point(testX, testY));
 						output.add(testBlock);
 					}
@@ -477,8 +423,7 @@ public class Player {
 	}
 
 	public void setChosenSide(int mouseX, int mouseY) {
-		PlayerBlock testBlock = new PlayerBlock(mouseX / Block.SIZE,
-		mouseY / Block.SIZE);
+		PlayerBlock testBlock = new PlayerBlock(mouseX / Block.SIZE, mouseY / Block.SIZE);
 		if (splitBlocks[0].contains(testBlock))
 			chosenSide = 0;
 		else if (splitBlocks[1].contains(testBlock))
@@ -510,8 +455,7 @@ public class Player {
 	public ArrayList<PlayerBlock> merge(Map map) {
 		// Breadth-first search implementation using LinkedList Queue
 		Queue<Point> queue = new LinkedList<Point>();
-		int[][] offsets = new int[][] { { 1, 0 }, { 0, 1 }, { -1, 0 },
-				{ 0, -1 } };
+		int[][] offsets = new int[][] { { 1, 0 }, { 0, 1 }, { -1, 0 }, { 0, -1 } };
 		ArrayList<PlayerBlock> mergedBlocks = new ArrayList<PlayerBlock>();
 		// Place the positions of all current player blocks into the queue
 		for (PlayerBlock block : playerBlocks) {
@@ -526,11 +470,9 @@ public class Player {
 				int testY = currPos.y + offset[1];
 				// Check to see if the block is valid and an instance of CryingPlayerBlock
 				if (map.isValidBlock(testX, testY)) {
-					PlayerBlock newPBlock = new PlayerBlock(testX,
-					testY);
-					if (map
-					.getBlocks()[testY][testX] instanceof CryingPlayerBlock
-					&& !mergedBlocks.contains(newPBlock)) {
+					PlayerBlock newPBlock = new PlayerBlock(testX, testY);
+					if (map.getBlocks()[testY][testX] instanceof CryingPlayerBlock
+							&& !mergedBlocks.contains(newPBlock)) {
 						// If so, merge the CryingPlayerBlock into a PlayerBlock and add its position to
 						// the queue
 						mergedBlocks.add(newPBlock);
@@ -545,11 +487,9 @@ public class Player {
 	public void move(Map map) {
 		int minDX;
 		int minDY = Integer.MAX_VALUE;
-		if (movement == Movement.LEFT
-		|| movement == Movement.STILL_LEFT) {
+		if (movement == Movement.LEFT || movement == Movement.STILL_LEFT) {
 			minDX = Integer.MIN_VALUE;
-		} else if (movement == Movement.RIGHT
-		|| movement == Movement.STILL_RIGHT) {
+		} else if (movement == Movement.RIGHT || movement == Movement.STILL_RIGHT) {
 			minDX = Integer.MAX_VALUE;
 		} else {
 			minDX = 0;
@@ -566,28 +506,24 @@ public class Player {
 				if (temp.y % Block.SIZE == 0)
 					worldPosY2 = worldPos.y;
 				if (((map.isValidBlock(worldPos.x - 1, worldPos.y)
-				&& map.getBlocks()[worldPos.y][worldPos.x - 1]
-				.isSolid())
-				|| (map.isValidBlock(worldPos.x - 1, worldPosY2)
-				&& map.getBlocks()[worldPosY2][worldPos.x - 1]
-				.isSolid())) && temp.x - SPEED_X < nearestLeftX) {
+						&& map.getBlocks()[worldPos.y][worldPos.x - 1].isSolid())
+						|| (map.isValidBlock(worldPos.x - 1, worldPosY2)
+								&& map.getBlocks()[worldPosY2][worldPos.x - 1].isSolid()))
+						&& temp.x - SPEED_X < nearestLeftX) {
 					temp.setLocation(nearestLeftX, temp.y);
 				} else {
 					temp.translate(-SPEED_X, 0);
 				}
 			} else if (movement == Movement.RIGHT) {
-				int nearestRightX = Block.SIZE
-				* (int) Math.ceil(temp.getX() / Block.SIZE);
-				int rightBlockX = (int) Math
-				.ceil(temp.getX() / Block.SIZE) + 1;
+				int nearestRightX = Block.SIZE * (int) Math.ceil(temp.getX() / Block.SIZE);
+				int rightBlockX = (int) Math.ceil(temp.getX() / Block.SIZE) + 1;
 				int worldPosY2 = worldPos.y + 1;
 				if (temp.y % Block.SIZE == 0)
 					worldPosY2 = worldPos.y;
-				if (((map.isValidBlock(rightBlockX, worldPos.y)
-				&& map.getBlocks()[worldPos.y][rightBlockX].isSolid())
-				|| (map.isValidBlock(rightBlockX, worldPosY2)
-				&& map.getBlocks()[worldPosY2][rightBlockX]
-				.isSolid())) && temp.x + SPEED_X > nearestRightX) {
+				if (((map.isValidBlock(rightBlockX, worldPos.y) && map.getBlocks()[worldPos.y][rightBlockX].isSolid())
+						|| (map.isValidBlock(rightBlockX, worldPosY2)
+								&& map.getBlocks()[worldPosY2][rightBlockX].isSolid()))
+						&& temp.x + SPEED_X > nearestRightX) {
 					temp.setLocation(nearestRightX, temp.y);
 				} else {
 					temp.translate(SPEED_X, 0);
@@ -601,8 +537,7 @@ public class Player {
 					temp.translate(-SPEED_X, 0);
 				}
 			} else if (movement == Movement.STILL_RIGHT) {
-				int nearestRightX = Block.SIZE
-				* (int) Math.ceil(temp.getX() / Block.SIZE);
+				int nearestRightX = Block.SIZE * (int) Math.ceil(temp.getX() / Block.SIZE);
 				if (nearestRightX - temp.x < SPEED_X) {
 					temp.setLocation(nearestRightX, temp.y);
 					movement = Movement.STILL;
@@ -611,33 +546,27 @@ public class Player {
 				}
 			}
 
-			int nearestX = Block.SIZE
-			* (int) Math.round(temp.getX() / Block.SIZE);
+			int nearestX = Block.SIZE * (int) Math.round(temp.getX() / Block.SIZE);
 			if (Math.abs(nearestX - temp.x) <= SPEED_X / 2) {
 				temp.setLocation(nearestX, temp.y);
 			}
 
 			int belowBlockX = temp.x / Block.SIZE;
-			int belowBlockY = (int) Math
-			.ceil(temp.getY() / Block.SIZE) + 1;
+			int belowBlockY = (int) Math.ceil(temp.getY() / Block.SIZE) + 1;
 			int tempSpeed = speedY;
 			int belowBlockX2 = belowBlockX + 1;
 			if (temp.x % Block.SIZE == 0) {
 				belowBlockX2 = belowBlockX;
 			}
-			if (!((map.isValidBlock(belowBlockX, belowBlockY)
-			&& map.getBlocks()[belowBlockY][belowBlockX].isSolid())
-			|| (map.isValidBlock(belowBlockX2, belowBlockY)
-			&& map.getBlocks()[belowBlockY][belowBlockX2]
-			.isSolid()))) {
+			if (!((map.isValidBlock(belowBlockX, belowBlockY) && map.getBlocks()[belowBlockY][belowBlockX].isSolid())
+					|| (map.isValidBlock(belowBlockX2, belowBlockY)
+							&& map.getBlocks()[belowBlockY][belowBlockX2].isSolid()))) {
 				tempSpeed += ACC_Y;
 			} else if (tempSpeed > 0) {
 				tempSpeed += ACC_Y;
-				if (temp.y + tempSpeed >= (belowBlockY - 1)
-				* Block.SIZE) {
+				if (temp.y + tempSpeed >= (belowBlockY - 1) * Block.SIZE) {
 					tempSpeed = 0;
-					temp.setLocation(temp.x,
-					(belowBlockY - 1) * Block.SIZE);
+					temp.setLocation(temp.x, (belowBlockY - 1) * Block.SIZE);
 				}
 			}
 			if (tempSpeed != 0) {
@@ -646,11 +575,9 @@ public class Player {
 
 			int dx = temp.x - pixelPos.x;
 			int dy = temp.y - pixelPos.y;
-			if (startMvmt == Movement.LEFT
-			|| startMvmt == Movement.STILL_LEFT)
+			if (startMvmt == Movement.LEFT || startMvmt == Movement.STILL_LEFT)
 				minDX = Math.max(minDX, dx);
-			else if (startMvmt == Movement.RIGHT
-			|| startMvmt == Movement.STILL_RIGHT)
+			else if (startMvmt == Movement.RIGHT || startMvmt == Movement.STILL_RIGHT)
 				minDX = Math.min(minDX, dx);
 			minDY = Math.min(minDY, dy);
 		}
@@ -658,9 +585,8 @@ public class Player {
 		for (PlayerBlock block : playerBlocks) {
 			Point pixelPos = block.getPixelCoords();
 			pixelPos.translate(minDX, minDY);
-			block.getWorldCoords()
-			.setLocation(Math.floor(pixelPos.getX() / Block.SIZE),
-			Math.floor(pixelPos.getY() / Block.SIZE));
+			block.getWorldCoords().setLocation(Math.floor(pixelPos.getX() / Block.SIZE),
+					Math.floor(pixelPos.getY() / Block.SIZE));
 		}
 		if (movement == Movement.STILL && !isFalling()) {
 			if (buildBlocks.isEmpty()) {
@@ -676,8 +602,7 @@ public class Player {
 		boolean out = true;
 		for (PlayerBlock pBlock : playerBlocks) {
 			Point playerPos = pBlock.getWorldCoords();
-			if (map.isValidBlock(playerPos.x, playerPos.y)
-			|| playerPos.x == -1) {
+			if (map.isValidBlock(playerPos.x, playerPos.y) || playerPos.x == -1) {
 				out = false;
 			}
 		}
@@ -699,14 +624,12 @@ public class Player {
 
 	public ArrayList<PlayerBlock> blocksOnGoalBlock(Point point) {
 		ArrayList<PlayerBlock> output = new ArrayList<PlayerBlock>();
-		Point pixelCoords = new Point(point.x * Block.SIZE,
-		point.y * Block.SIZE);
+		Point pixelCoords = new Point(point.x * Block.SIZE, point.y * Block.SIZE);
 		for (PlayerBlock pBlock : playerBlocks) {
 			Point checkCoords = pBlock.getPixelCoords();
 			int dx = pixelCoords.x - checkCoords.x;
 			int dy = pixelCoords.y - checkCoords.y;
-			if (dy <= GoalBlock.PRESSED_SIZE && dy >= 0
-			&& dx < Block.SIZE && dx > -Block.SIZE) {
+			if (dy <= GoalBlock.PRESSED_SIZE && dy >= 0 && dx < Block.SIZE && dx > -Block.SIZE) {
 				output.add(pBlock);
 			}
 		}
@@ -716,9 +639,7 @@ public class Player {
 	public boolean reachedGoal(Map map) {
 		ArrayList<PlayerBlock> onGoal = new ArrayList<PlayerBlock>();
 		for (int i = 0; i < map.getGoalBlocks().size(); i++) {
-			PlayerBlock goal = new PlayerBlock(
-			map.getGoalBlocks().get(i).x,
-			map.getGoalBlocks().get(i).y);
+			PlayerBlock goal = new PlayerBlock(map.getGoalBlocks().get(i).x, map.getGoalBlocks().get(i).y);
 			if (!playerBlocks.contains(goal))
 				return false;
 			onGoal.add(goal);
@@ -728,10 +649,8 @@ public class Player {
 			Point worldCoords = pBlock.getWorldCoords();
 			if (!onGoal.contains(pBlock)) {
 				if (map.isValidBlock(worldCoords.x, worldCoords.y + 1)
-				&& map.getBlocks()[worldCoords.y
-				+ 1][worldCoords.x] instanceof SolidBlock
-				|| map.getBlocks()[worldCoords.y
-				+ 1][worldCoords.x] instanceof CryingPlayerBlock)
+						&& map.getBlocks()[worldCoords.y + 1][worldCoords.x] instanceof SolidBlock
+						|| map.getBlocks()[worldCoords.y + 1][worldCoords.x] instanceof CryingPlayerBlock)
 					return false;
 			}
 		}

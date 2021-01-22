@@ -10,12 +10,12 @@ import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 
 public class Map {
-
+	
 	private char[][] mapChars;
 	private MapBlock[][] map;
 	private ArrayList<Point> startingPositions = new ArrayList<Point>();
 	private ArrayList<Point> goalBlocks = new ArrayList<Point>();
-
+	
 	Map(List<String> lines) throws IOException {
 		String firstLine = "";
 		for (int i = 0; i < lines.get(0).length(); i++) {
@@ -36,11 +36,9 @@ public class Map {
 				if (block == '.') {
 					map[i][j] = new SpaceBlock();
 				} else if (block == 'B') {
-					map[i][j] = new SolidBlock(
-					relativePosition(i, j));
+					map[i][j] = new SolidBlock(relativePosition(i, j));
 				} else if (block == 'C') {
-					map[i][j] = new CryingPlayerBlock(
-					relativePosition(i, j));
+					map[i][j] = new CryingPlayerBlock(relativePosition(i, j));
 				} else if (block == 'G') {
 					map[i][j] = new GoalBlock();
 					goalBlocks.add(new Point(j, i));
@@ -59,17 +57,15 @@ public class Map {
 			}
 		}
 	}
-
+	
 	Map(Map other) {
-		mapChars = new char[other
-		.getChars().length][other.getChars()[0].length];
+		mapChars = new char[other.getChars().length][other.getChars()[0].length];
 		for (int i = 0; i < other.getChars().length; i++) {
 			for (int j = 0; j < other.getChars()[0].length; j++) {
 				mapChars[i][j] = other.getChars()[i][j];
 			}
 		}
-		map = new MapBlock[other
-		.getBlocks().length][other.getBlocks()[0].length];
+		map = new MapBlock[other.getBlocks().length][other.getBlocks()[0].length];
 		for (int i = 0; i < other.getBlocks().length; i++) {
 			for (int j = 0; j < other.getBlocks()[0].length; j++) {
 				map[i][j] = other.getBlocks()[i][j];
@@ -78,17 +74,13 @@ public class Map {
 		startingPositions = other.getStartingPositions();
 		goalBlocks = other.getGoalBlocks();
 	}
-
+	
 	public int relativePosition(int i, int j) {
 		char c = mapChars[i][j];
-		boolean left = !isValidBlock(j - 1, i)
-		|| mapChars[i][j - 1] == c;
-		boolean right = !isValidBlock(j + 1, i)
-		|| mapChars[i][j + 1] == c;
-		boolean top = !isValidBlock(j, i - 1)
-		|| mapChars[i - 1][j] == c;
-		boolean bottom = !isValidBlock(j, i + 1)
-		|| mapChars[i + 1][j] == c;
+		boolean left = !isValidBlock(j - 1, i) || mapChars[i][j - 1] == c;
+		boolean right = !isValidBlock(j + 1, i) || mapChars[i][j + 1] == c;
+		boolean top = !isValidBlock(j, i - 1) || mapChars[i - 1][j] == c;
+		boolean bottom = !isValidBlock(j, i + 1) || mapChars[i + 1][j] == c;
 		if (left) {
 			// block to left
 			if (right) {
@@ -169,24 +161,23 @@ public class Map {
 			}
 		}
 	}
-
+	
 	public boolean isValidBlock(int x, int y) {
-		return y >= 0 && y < map.length && x >= 0
-		&& x < map[0].length;
+		return y >= 0 && y < map.length && x >= 0 && x < map[0].length;
 	}
-
+	
 	public char[][] getChars() {
 		return mapChars;
 	}
-
+	
 	public MapBlock[][] getBlocks() {
 		return map;
 	}
-
+	
 	public ArrayList<Point> getStartingPositions() {
 		return startingPositions;
 	}
-
+	
 	public ArrayList<Point> getGoalBlocks() {
 		return goalBlocks;
 	}

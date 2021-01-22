@@ -34,7 +34,7 @@ import javax.swing.SwingConstants;
 public class LevelScreen extends JPanel implements ActionListener {
 	private JFrame frame;
 	private Image bg;
-
+	
 	private JButton[] buttons = new JButton[6];
 	private JButton[] allButtons = new JButton[24];
 	private JButton exit;
@@ -43,33 +43,27 @@ public class LevelScreen extends JPanel implements ActionListener {
 	private int page = 1;
 	private JPanel grid;
 	private GridBagConstraints gbc;
-	private Font font = FontLoader.loadFont("src/res/font.ttf", 36);
-
+	private Font font = FontLoader.loadFont("font.ttf", 36);
+	
 	private SoundEffect click = new SoundEffect(SoundEffect.CLICK);
 
 	LevelScreen(JFrame frame) {
 		this.frame = frame;
-		setPreferredSize(
-		new Dimension(33 * Block.SIZE, 24 * Block.SIZE));
+		setPreferredSize(new Dimension(33 * Block.SIZE, 24 * Block.SIZE));
 		setLayout(null);
 		try {
-			bg = ImageIO
-			.read(new File("src/res/img/backgrounds/grasslands.png"));
-
-			exit = initializeButton("src/res/img/ui/exit.png",
-			"src/res/img/ui/exitPressed.png");
+			bg = ImageIO.read(new File("img/backgrounds/grasslands.png"));
+			
+			exit = initializeButton("img/ui/exit.png", "img/ui/exitPressed.png");
 			exit.setBounds(30, 15, 70, 70);
 			add(exit);
-
+			
 			JPanel container = new JPanel();
 			container.setOpaque(false);
-			container
-			.setLayout(new BoxLayout(container, BoxLayout.Y_AXIS));
-			container.setBounds(0, 0, frame.getWidth(),
-			frame.getHeight());
+			container.setLayout(new BoxLayout(container, BoxLayout.Y_AXIS));
+			container.setBounds(0, 0, frame.getWidth(), frame.getHeight());
 			container.add(Box.createVerticalStrut(100));
-			JLabel levelsLabel = new JLabel(
-			new ImageIcon("src/res/img/ui/levelsPressed.png"));
+			JLabel levelsLabel = new JLabel(new ImageIcon("img/ui/levelsPressed.png"));
 			levelsLabel.setAlignmentX(CENTER_ALIGNMENT);
 			container.add(levelsLabel);
 			grid = new JPanel();
@@ -92,17 +86,13 @@ public class LevelScreen extends JPanel implements ActionListener {
 			container.add(grid);
 			JPanel navigation = new JPanel();
 			navigation.setOpaque(false);
-			lastPage = initializeButton(
-			"src/res/img/ui/lastLevel.png",
-			"src/res/img/ui/lastLevelPressed.png");
+			lastPage = initializeButton("img/ui/lastLevel.png", "img/ui/lastLevelPressed.png");
 			navigation.add(lastPage);
 			pageNum = new JLabel(page + " / 4");
 			pageNum.setFont(font);
 			pageNum.setForeground(Color.WHITE);
 			navigation.add(pageNum);
-			nextPage = initializeButton(
-			"src/res/img/ui/nextLevel.png",
-			"src/res/img/ui/nextLevelPressed.png");
+			nextPage = initializeButton("img/ui/nextLevel.png", "img/ui/nextLevelPressed.png");
 			navigation.add(nextPage);
 			navigation.setAlignmentX(CENTER_ALIGNMENT);
 			container.add(navigation);
@@ -112,9 +102,8 @@ public class LevelScreen extends JPanel implements ActionListener {
 			e.printStackTrace();
 		}
 	}
-
-	private JButton initializeButton(String imgPath,
-	String pressedImgPath) {
+	
+	private JButton initializeButton(String imgPath, String pressedImgPath) {
 		JButton b = new JButton(new ImageIcon(imgPath));
 		b.setPressedIcon(new ImageIcon(pressedImgPath));
 		b.setContentAreaFilled(false);
@@ -123,36 +112,31 @@ public class LevelScreen extends JPanel implements ActionListener {
 		b.addActionListener(this);
 		return b;
 	}
-
+	
 	public void paintComponent(Graphics g) {
 		drawBackground(g);
 	}
-
+	
 	public void drawBackground(Graphics g) {
 		Dimension size = getPreferredSize();
 		double ratio = size.getWidth() / size.getHeight();
-		double imgRatio = (double) bg.getWidth(this)
-		/ bg.getHeight(this);
+		double imgRatio = (double) bg.getWidth(this) / bg.getHeight(this);
 		int width, height;
 		if (ratio > imgRatio) {
 			width = (int) size.getWidth();
-			height = (int) (size.getWidth() / bg.getWidth(this)
-			* bg.getHeight(this));
+			height = (int) (size.getWidth() / bg.getWidth(this) * bg.getHeight(this));
 		} else {
 			height = (int) size.getHeight();
 			width = (int) (ratio * height);
 		}
-		g.drawImage(bg, -(width - (int) size.getWidth()) / 2,
-		-(height - (int) size.getHeight()) / 2, width, height, this);
+		g.drawImage(bg, -(width - (int) size.getWidth()) / 2, -(height - (int) size.getHeight()) / 2, width, height, this);
 	}
-
+	
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		String cmd = e.getActionCommand();
 		if (cmd.startsWith("Level ")) {
-			frame.setContentPane(
-			new Level(Integer.parseInt(cmd.substring(6)),
-			"src/res/img/backgrounds/grasslands.png", frame, this));
+			frame.setContentPane(new Level(Integer.parseInt(cmd.substring(6)), "img/backgrounds/grasslands.png", frame, this));
 		} else if (e.getSource() == lastPage) {
 			if (page == 1) {
 				page = 4;
@@ -174,7 +158,7 @@ public class LevelScreen extends JPanel implements ActionListener {
 		frame.repaint();
 		frame.revalidate();
 	}
-
+	
 	private void newPage() {
 		pageNum.setText(page + " / 4");
 		for (int i = 0; i < 6; i++) {
