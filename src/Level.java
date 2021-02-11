@@ -26,17 +26,18 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 	private double powerUpAngle = 0;
 	
 	private Player player = new Player();
+	private int numHearts = 3;
 	private boolean firstMovement = true;
 	private boolean complete = false;
 	
+	private long startTime, endTime;
+	
 	private JButton lastLevel, nextLevel, exit, reset;
-	private Image[] powerUpImages = new Image[3];
-	private Image[] numbers = new Image[10];
-	private Image cross;
+	private JLabel timerLabel;
+	private JLabel growCount, splitCount, mergeCount;
+	private JLabel[] hearts = new JLabel[3];
 	private JPanel moveHelp, growHelp, mergeHelp, finishHelp;
 	private JPanel[] splitHelp = new JPanel[3];
-	private Font levelFont = FontLoader.loadFont("font.ttf", 36);
-	private Font helpFont = FontLoader.loadFont("font.ttf", 20);
 	
 	private HashMap<String, SoundEffect> soundEffects = new HashMap<String, SoundEffect>();
 	
@@ -67,104 +68,85 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 		bindKeys();
 		initializeSoundEffects();
 //		soundEffects.get("start").play(false);
+		startTime = System.currentTimeMillis();
+		endTime = startTime;
 		timer.start();
 	}
 	
 	private void initializeUI() throws IOException {
-		exit = initializeButton("img/ui/exit.png", "img/ui/exitPressed.png", new Rectangle(30, 15, 70, 70));
+		exit = UIFactory.createButton(new ImageIcon("img/ui/exit.png"), new ImageIcon("img/ui/exitPressed.png"), 25, 15);
+		exit.addActionListener(this);
 		add(exit);
-		lastLevel = initializeButton("img/ui/lastLevel.png", "img/ui/lastLevelPressed.png", new Rectangle(130, 25, 45, 49));
+		lastLevel = UIFactory.createButton(new ImageIcon("img/ui/lastLevel.png"), new ImageIcon("img/ui/lastLevelPressed.png"), 100, 15);
+		lastLevel.addActionListener(this);
 		if (levelNumber == 1) {
 			lastLevel.setEnabled(false);
 		}
 		add(lastLevel);
-		JLabel levelText = new JLabel("Level " + levelNumber, SwingConstants.CENTER);
-		levelText.setFont(levelFont);
-		levelText.setForeground(Color.WHITE);
-		levelText.setBounds(190, 22, 271, 70);
-		add(levelText);
-		JLabel levelBar = new JLabel(new ImageIcon("img/ui/levelBar.png"));
-		levelBar.setBounds(190, 15, 271, 70);
-		add(levelBar);
-		nextLevel = initializeButton("img/ui/nextLevel.png", "img/ui/nextLevelPressed.png", new Rectangle(476, 25, 45, 49));
+		add(UIFactory.createLabel("Level " + levelNumber, 28, new Rectangle(155, 20, 190, 49)));
+		add(UIFactory.createLabel(new ImageIcon("img/ui/levelBar.png"), 155, 15));
+		nextLevel = UIFactory.createButton(new ImageIcon("img/ui/nextLevel.png"), new ImageIcon("img/ui/nextLevelPressed.png"), 355, 15);
 		if (levelNumber == 24) {
 			nextLevel.setEnabled(false);
 		}
+		nextLevel.addActionListener(this);
 		add(nextLevel);
-		reset = initializeButton("img/ui/reset.png", "img/ui/resetPressed.png", new Rectangle(551, 15, 70, 70));
+		reset = UIFactory.createButton(new ImageIcon("img/ui/reset.png"), new ImageIcon("img/ui/resetPressed.png"), 425, 15);
+		reset.addActionListener(this);
 		add(reset);
-		powerUpImages[0] = ImageIO.read(new File("img/sprites/powerups/grow.png"));
-		powerUpImages[1] = ImageIO.read(new File("img/sprites/powerups/split.png"));
-		powerUpImages[2] = ImageIO.read(new File("img/sprites/powerups/merge.png"));
-		for (int i = 0; i < 10; i++) {
-			numbers[i] = ImageIO.read(new File("img/ui/hud_" + i + ".png"));
-		}
-		cross = ImageIO.read(new File("img/ui/hud_x.png"));
 		
-		moveHelp = initializeHelpPanel("Press A or left arrow key to move left. Press D or right arrow key to move right.", 300, 125);
+		int width = getPreferredSize().width;
+		
+		timerLabel = UIFactory.createOutlinedLabel("0:00.0", width / 2 - 77, 20);
+		add(timerLabel);
+		
+		add(UIFactory.createLabel(new ImageIcon("img/sprites/powerups/grow.png"), width - 480, 0));
+		growCount = UIFactory.createOutlinedLabel("x0", width - 410, 20);
+		add(growCount);
+		add(UIFactory.createLabel(new ImageIcon("img/sprites/powerups/split.png"), width - 320, 0));
+		splitCount = UIFactory.createOutlinedLabel("x0", width - 250, 20);
+		add(splitCount);
+		add(UIFactory.createLabel(new ImageIcon("img/sprites/powerups/merge.png"), width - 160, 0));
+		mergeCount = UIFactory.createOutlinedLabel("x0", width - 90, 20);
+		add(mergeCount);
+		
+		ImageIcon heartIcon = new ImageIcon("img/ui/hud_heartFull.png");
+		ImageIcon emptyHeartIcon = new ImageIcon("img/ui/hud_heartEmpty.png");
+		for (int i = 0; i < 3; i++) {
+			add(UIFactory.createLabel(emptyHeartIcon, (int) (width / 2 + (-1.5 + i) * emptyHeartIcon.getIconWidth()), 70));
+			hearts[i] = UIFactory.createLabel(heartIcon, (int) (width / 2 + (-1.5 + i) * heartIcon.getIconWidth()), 70);
+			add(hearts[i]);
+		}
+		
+		moveHelp = UIFactory.createHelpPanel("Press A or left arrow key to move left. Press D or right arrow key to move right.", 300, 150);
 		if (levelNumber == 1) {
 			add(moveHelp);
 			revalidate();
 		}
-		growHelp = initializeHelpPanel("Hover your cursor next to your block. Click to grow there.", "img/sprites/powerups/grow.png", 900, 150);
-		splitHelp[0] = initializeHelpPanel("Right click to begin to split.", "img/sprites/powerups/split.png", 250, 350);
-		splitHelp[1] = initializeHelpPanel("Click the line where you want to split.", "img/sprites/powerups/split.png", 250, 350);
-		splitHelp[2] = initializeHelpPanel("Choose a side to keep.", "img/sprites/powerups/split.png", 250, 350);
-		mergeHelp = initializeHelpPanel("Press SHIFT to merge with adjacent abandoned blocks.", "img/sprites/powerups/merge.png", 950, 300);
-		finishHelp = initializeHelpPanel("To complete a level, all blocks must either be on a button or off the ground.", 100, 600);
+		growHelp = UIFactory.createHelpPanel("Hover your cursor next to your block. Click to grow there.", new ImageIcon("img/sprites/powerups/grow.png"), 900, 150);
+		splitHelp[0] = UIFactory.createHelpPanel("Right click to begin to split.", new ImageIcon("img/sprites/powerups/split.png"), 250, 350);
+		splitHelp[1] = UIFactory.createHelpPanel("Click the line where you want to split.", new ImageIcon("img/sprites/powerups/split.png"), 250, 350);
+		splitHelp[2] = UIFactory.createHelpPanel("Choose a side to keep.", new ImageIcon("img/sprites/powerups/split.png"), 250, 350);
+		mergeHelp = UIFactory.createHelpPanel("Press SHIFT to merge with adjacent abandoned blocks.", new ImageIcon("img/sprites/powerups/merge.png"), 950, 300);
+		finishHelp = UIFactory.createHelpPanel("To complete a level, all blocks must either be on a button or off the ground.", 100, 600);
 		if (levelNumber == 4) {
 			add(finishHelp);
 			revalidate();
 		}
 	}
 	
-	private JButton initializeButton(String imgPath, String pressedImgPath, Rectangle bounds) {
-		JButton b = new JButton(new ImageIcon(imgPath));
-		b.setPressedIcon(new ImageIcon(pressedImgPath));
-		b.setBounds(bounds);
-		b.setContentAreaFilled(false);
-		b.setBorderPainted(false);
-		b.setFocusPainted(false);
-		b.addActionListener(this);
-		return b;
-	}
-	
-	private JPanel initializeHelpPanel(String text, int x, int y) {
-		JPanel panel = new JPanel();
-		panel.setOpaque(false);
-		panel.setLayout(null);
-		panel.setBounds(x, y, 300, 150);
-		JLabel helpText = new JLabel("<html>" + text + "</html>");
-		helpText.setFont(helpFont);
-		helpText.setForeground(Color.WHITE);
-		helpText.setBounds(20, 20, 260, 110);
-		panel.add(helpText);
-		JLabel helpBG = new JLabel(new ImageIcon("img/ui/help.png"));
-		helpBG.setBounds(0, 0, 300, 150);
-		panel.add(helpBG);
-		return panel;
-	}
-	
-	private JPanel initializeHelpPanel(String text, String imagePath, int x, int y) {
-		JPanel panel = new JPanel();
-		panel.setOpaque(false);
-		panel.setLayout(null);
-		panel.setBounds(x, y, 300, 150);
-		ImageIcon icon = new ImageIcon(imagePath);
-		Image image = icon.getImage();
-		image = image.getScaledInstance(50, 50, Image.SCALE_DEFAULT);
-		JLabel powerUp = new JLabel(new ImageIcon(image));
-		powerUp.setBounds(8, 50, 50, 50);
-		panel.add(powerUp);
-		JLabel helpText = new JLabel("<html>" + text + "</html>");
-		helpText.setFont(helpFont);
-		helpText.setForeground(Color.WHITE);
-		helpText.setBounds(60, 20, 220, 110);
-		panel.add(helpText);
-		JLabel helpBG = new JLabel(new ImageIcon("img/ui/help.png"));
-		helpBG.setBounds(0, 0, 300, 150);
-		panel.add(helpBG);
-		return panel;
+	private void updateHUD() {
+		int elapsed = (int) ((endTime - startTime) / 100);
+		int minutes = elapsed / 600, seconds = (elapsed % 600) / 10, decis = (elapsed % 600) % 10;
+		String time = minutes + ":" + String.format("%02d", seconds) + "." + decis;
+		
+		timerLabel.setText(time);
+		Dimension timerSize = timerLabel.getPreferredSize();
+		timerLabel.setBounds((getPreferredSize().width - timerSize.width) / 2, 20, timerSize.width, timerSize.height);
+		
+		growCount.setText("x" + storedPowerUps[0]);
+		mergeCount.setText("x" + storedPowerUps[1]);
+		splitCount.setText("x" + storedPowerUps[2]);
 	}
 	
 	private void bindKeys() {
@@ -270,7 +252,6 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 		super.paintComponent(g);
 		Graphics2D g2 = (Graphics2D) g;
 		drawBackground(g);
-		drawHUD(g);
 		MapBlock[][] blocks = map.getBlocks();
 		for (int i = 0; i < blocks.length; i++) {
 			for (int j = 0; j < blocks[0].length; j++) {
@@ -345,31 +326,6 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 			width = (int) (ratio * height);
 		}
 		g.drawImage(bg, -(width - (int) size.getWidth()) / 2, -(height - (int) size.getHeight()) / 2, width, height, this);
-	}
-	
-	private void drawHUD(Graphics g) {
-		int x = getPreferredSize().width;
-		int[] startX = { x - 600, x - 400, x - 200 };
-		for (int i = 0; i < 3; i++) {
-			Image[] images = new Image[4];
-			images[0] = powerUpImages[i];
-			images[1] = cross;
-			int num = storedPowerUps[i];
-			images[2] = num < 10 ? numbers[num] : numbers[num / 10];
-			images[3] = num < 10 ? null : numbers[num % 10];
-			
-			int dx = 0;
-			for (int j = 0; j < images.length; j++) {
-				if (images[j] != null) {
-					g.drawImage(images[j], startX[i] + dx, (images[0].getHeight(null) - images[j].getHeight(null)) / 2, null);
-					int width = images[j].getWidth(null);
-					if (j == 0) {
-						width -= 15;
-					}
-					dx += width;
-				}
-			}
-		}
 	}
 
 	@Override
@@ -498,6 +454,9 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 			changeScreen(last);
 			soundEffects.get("click").play(false);
 		} else if (arg0.getSource() == timer) {
+			endTime = System.currentTimeMillis();
+			updateHUD();
+			
 			powerUpAngle += 0.05;
 			if (powerUpAngle >= 2 * Math.PI)
 				powerUpAngle = 0;
@@ -521,6 +480,8 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 			
 			if (player.isOutOfBounds(map)) {
 				resetLevel();
+				numHearts--;
+				remove(hearts[numHearts]);
 				soundEffects.get("death").play(false);
 			}
 			if (!complete && player.reachedGoal(map)) {
@@ -607,16 +568,16 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 		return new Dimension(map.getBlocks()[0].length * Block.SIZE, map.getBlocks().length * Block.SIZE);
 	}
 
-	private static void runGame() {
-		JFrame frame = new JFrame("Level 15");
-		Level level = new Level(15, "img/backgrounds/grasslands.png", frame, null);
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.addMouseListener(level);
-		frame.addMouseMotionListener(level);
-		frame.add(level);
-		frame.pack();
-		frame.setVisible(true);
-	}
+//	private static void runGame() {
+//		JFrame frame = new JFrame("Level 15");
+//		Level level = new Level(15, "img/backgrounds/grasslands.png", frame, null);
+//		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+//		frame.addMouseListener(level);
+//		frame.addMouseMotionListener(level);
+//		frame.add(level);
+//		frame.pack();
+//		frame.setVisible(true);
+//	}
 
 //	public static void main(String[] args) {
 //		javax.swing.SwingUtilities.invokeLater(new Runnable() {

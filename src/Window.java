@@ -12,9 +12,9 @@ class Window {
 		frame = new JFrame("The Puzzled Cube");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setResizable(false);
-		frame.setPreferredSize(new Dimension(d.width * MapBlock.SIZE, d.height * MapBlock.SIZE));
-		frame.setMinimumSize(new Dimension(d.width * MapBlock.SIZE, d.height * MapBlock.SIZE));
-		frame.setMaximumSize(new Dimension(d.width * MapBlock.SIZE, d.height * MapBlock.SIZE));
+		frame.setPreferredSize(new Dimension(d.width * Block.SIZE, d.height * Block.SIZE));
+		frame.setMinimumSize(new Dimension(d.width * Block.SIZE, d.height * Block.SIZE));
+		frame.setMaximumSize(new Dimension(d.width * Block.SIZE, d.height * Block.SIZE));
 		frame.setContentPane(new MainScreen(frame));
 		frame.pack();
 		frame.setVisible(true);

@@ -16,7 +16,7 @@ public class LevelButton extends JButton {
 	
 	private int levelNumber;
 	private Image normal, pressed;
-	private Font font = FontLoader.loadFont("font.ttf", 72);
+	private Font font = UIFactory.getFont(72);
 	
 	LevelButton(int levelNumber) {
 		this.levelNumber = levelNumber;

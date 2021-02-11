@@ -11,7 +11,7 @@ import javax.swing.*;
 public class MainScreen extends JPanel implements ActionListener {
 	private JFrame frame;
 	private Image bg;
-	private JButton play, levels;
+	private JButton play, levels, leaders;
 	
 	private SoundEffect click = new SoundEffect(SoundEffect.CLICK);
 
@@ -22,35 +22,28 @@ public class MainScreen extends JPanel implements ActionListener {
 		try {
 			bg = ImageIO.read(new File("img/backgrounds/grasslands.png"));
 			add(Box.createVerticalGlue());
-			add(Box.createVerticalGlue());
 			JLabel title = new JLabel(new ImageIcon("img/ui/title.png"));
 			title.setAlignmentX(CENTER_ALIGNMENT);
 			add(title);
 			add(Box.createVerticalGlue());
-			add(Box.createVerticalGlue());
-			play = initializeButton("img/ui/play.png", "img/ui/playPressed.png");
+			play = UIFactory.createButton(new ImageIcon("img/ui/play.png"), new ImageIcon("img/ui/playPressed.png"));
 			play.setAlignmentX(CENTER_ALIGNMENT);
+			play.addActionListener(this);
 			add(play);
 			add(Box.createVerticalStrut(Block.SIZE));
-			levels = initializeButton("img/ui/levels.png", "img/ui/levelsPressed.png");
+			levels = UIFactory.createButton(new ImageIcon("img/ui/levels.png"), new ImageIcon("img/ui/levelsPressed.png"));
 			levels.setAlignmentX(CENTER_ALIGNMENT);
+			levels.addActionListener(this);
 			add(levels);
-			add(Box.createVerticalGlue());
-			add(Box.createVerticalGlue());
+			add(Box.createVerticalStrut(Block.SIZE));
+			leaders = UIFactory.createButton(new ImageIcon("img/ui/leaderboard.png"), new ImageIcon("img/ui/leaderboardPressed.png"));
+			leaders.setAlignmentX(CENTER_ALIGNMENT);
+			leaders.addActionListener(this);
+			add(leaders);
 			add(Box.createVerticalGlue());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-	}
-	
-	private JButton initializeButton(String imgPath, String pressedImgPath) {
-		JButton b = new JButton(new ImageIcon(imgPath));
-		b.setPressedIcon(new ImageIcon(pressedImgPath));
-		b.setContentAreaFilled(false);
-		b.setBorderPainted(false);
-		b.setFocusPainted(false);
-		b.addActionListener(this);
-		return b;
 	}
 	
 	public void paintComponent(Graphics g) {
@@ -79,6 +72,8 @@ public class MainScreen extends JPanel implements ActionListener {
 			frame.setContentPane(level);
 		} else if (e.getSource() == levels) {
 			frame.setContentPane(new LevelScreen(frame));
+		} else if (e.getSource() == leaders) {
+			frame.setContentPane(new LeaderboardScreen(frame));
 		}
 		click.play(false);
 		frame.revalidate();
