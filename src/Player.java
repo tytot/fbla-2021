@@ -8,7 +8,7 @@ import java.util.Set;
 public class Player {
 
 	private Movement movement = Movement.STILL;
-	private static final int SPEED_X = 4;
+	private static final int SPEED_X = 8;
 	private int speedY;
 	private static final int ACC_Y = 1;
 
@@ -18,6 +18,8 @@ public class Player {
 	private PlayerBlock highlightedBlock = null;
 	private Point[] splitLine = null;
 	private int chosenSide = -1;
+	
+	private final int[][] ADJACENCIES = new int[][] { { 1, 0 }, { 0, 1 }, { -1, 0 }, { 0, -1 } };
 
 	public static final int NORMAL = 0;
 //	public static final int BUILDING = 1;
@@ -67,6 +69,16 @@ public class Player {
 
 	public void setMovement(Movement movement) {
 		this.movement = movement;
+	}
+	
+	public boolean intersectsPoint(Point point) {
+		for (PlayerBlock pBlock : playerBlocks) {
+			Point pixelCoords = pBlock.getPixelCoords();
+			if (point.x >= pixelCoords.x && point.x <= pixelCoords.x + Block.SIZE && point.y >= pixelCoords.y && point.y <= pixelCoords.y + Block.SIZE) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public void squishBlocks(Set<PlayerBlock> blocksToSquish) {
@@ -383,7 +395,6 @@ public class Player {
 	}
 
 	private ArrayList<PlayerBlock> blocksConnectedTo(PlayerBlock block) {
-		int[][] offsets = new int[][] { { 1, 0 }, { 0, 1 }, { -1, 0 }, { 0, -1 } };
 		boolean horizontalCut = splitLine[0].y == splitLine[1].y;
 		int splitLoc = splitLine[0].x;
 		if (horizontalCut)
@@ -396,7 +407,7 @@ public class Player {
 		output.add(block);
 		while (!queue.isEmpty()) {
 			Point currPos = queue.poll();
-			for (int[] offset : offsets) {
+			for (int[] offset : ADJACENCIES) {
 				int testX = currPos.x + offset[0];
 				int testY = currPos.y + offset[1];
 				boolean otherSide;
@@ -455,7 +466,6 @@ public class Player {
 	public ArrayList<PlayerBlock> merge(Map map) {
 		// Breadth-first search implementation using LinkedList Queue
 		Queue<Point> queue = new LinkedList<Point>();
-		int[][] offsets = new int[][] { { 1, 0 }, { 0, 1 }, { -1, 0 }, { 0, -1 } };
 		ArrayList<PlayerBlock> mergedBlocks = new ArrayList<PlayerBlock>();
 		// Place the positions of all current player blocks into the queue
 		for (PlayerBlock block : playerBlocks) {
@@ -465,7 +475,7 @@ public class Player {
 		while (!queue.isEmpty()) {
 			Point currPos = queue.poll();
 			// For each of the 4 blocks adjacent to the polled position
-			for (int[] offset : offsets) {
+			for (int[] offset : ADJACENCIES) {
 				int testX = currPos.x + offset[0];
 				int testY = currPos.y + offset[1];
 				// Check to see if the block is valid and an instance of CryingPlayerBlock

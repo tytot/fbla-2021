@@ -9,7 +9,6 @@ public class SpaceBlock extends MapBlock {
 
 	@Override
 	public Image getImage() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 }

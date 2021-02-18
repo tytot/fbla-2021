@@ -22,7 +22,6 @@ import javax.swing.JScrollPane;
 
 public class LeaderboardScreen extends JPanel implements ActionListener {
 	private JFrame frame;
-	private Image bg;
 	
 	private JButton[] buttons = new JButton[6];
 	private JButton[] allButtons = new JButton[24];
@@ -32,57 +31,50 @@ public class LeaderboardScreen extends JPanel implements ActionListener {
 	private int page = 1;
 	private JPanel grid;
 	private GridBagConstraints gbc;
-	
-	private SoundEffect click = new SoundEffect(SoundEffect.CLICK);
 
 	LeaderboardScreen(JFrame frame) {
 		this.frame = frame;
 		setPreferredSize(new Dimension(33 * Block.SIZE, 24 * Block.SIZE));
 		setLayout(null);
-		try {
-			bg = ImageIO.read(new File("img/backgrounds/grasslands.png"));
-			
-			exit = UIFactory.createButton(new ImageIcon("img/ui/exit.png"), new ImageIcon("img/ui/exitPressed.png"), 25, 15);
-			exit.addActionListener(this);
-			add(exit);
-			
-			JPanel container = new JPanel();
-			container.setOpaque(false);
-			container.setLayout(new BoxLayout(container, BoxLayout.Y_AXIS));
-			container.setBounds(0, 0, frame.getWidth(), frame.getHeight());
-			container.add(Box.createVerticalStrut(Block.SIZE * 2));
-			JLabel levelsLabel = UIFactory.createLabel(new ImageIcon("img/ui/leaderboardPressed.png"));
-			levelsLabel.setAlignmentX(CENTER_ALIGNMENT);
-			container.add(levelsLabel);
-			container.add(Box.createVerticalStrut(Block.SIZE));
-			JLabel leaderboardHeader = UIFactory.createLabel(new ImageIcon("img/ui/leaderboardHeader.png"));
-			leaderboardHeader.setAlignmentX(CENTER_ALIGNMENT);
-			container.add(leaderboardHeader);
-			container.add(Box.createVerticalStrut(Block.SIZE / 2));
-			
-			JPanel list = new JPanel();
-			list.setLayout(new BoxLayout(list, BoxLayout.Y_AXIS));
-			list.setOpaque(false);
-			for (int i = 0; i < 10; i++) {
-				JPanel entry = initializeEntry(i + 1);
-				list.add(entry);
-			}
-			
-			JScrollPane scroller = new JScrollPane(list, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-			scroller.setBorder(BorderFactory.createLineBorder(new Color(0, 0, 0, 25), 16, true));
-			scroller.getVerticalScrollBar().setUI(new CustomScrollBarUI());
-			scroller.getVerticalScrollBar().setBackground(new Color(0, 0, 0, 25));
-			scroller.getVerticalScrollBar().setUnitIncrement(20);
-			scroller.setAlignmentX(CENTER_ALIGNMENT);
-			scroller.setOpaque(false);
-			scroller.getViewport().setOpaque(false);
-			scroller.setMaximumSize(new Dimension(720, scroller.getPreferredSize().height));
-			container.add(scroller);
-			container.add(Box.createVerticalStrut(Block.SIZE * 2));
-			add(container);
-		} catch (IOException e) {
-			e.printStackTrace();
+		
+		exit = UIFactory.createButton(new ImageIcon("img/ui/exit.png"), new ImageIcon("img/ui/exitPressed.png"), 25, 15);
+		exit.addActionListener(this);
+		add(exit);
+		
+		JPanel container = new JPanel();
+		container.setOpaque(false);
+		container.setLayout(new BoxLayout(container, BoxLayout.Y_AXIS));
+		container.setBounds(0, 0, frame.getWidth(), frame.getHeight());
+		container.add(Box.createVerticalStrut(Block.SIZE * 2));
+		JLabel levelsLabel = UIFactory.createLabel(new ImageIcon("img/ui/leaderboardPressed.png"));
+		levelsLabel.setAlignmentX(CENTER_ALIGNMENT);
+		container.add(levelsLabel);
+		container.add(Box.createVerticalStrut(Block.SIZE));
+		JLabel leaderboardHeader = UIFactory.createLabel(new ImageIcon("img/ui/leaderboardHeader.png"));
+		leaderboardHeader.setAlignmentX(CENTER_ALIGNMENT);
+		container.add(leaderboardHeader);
+		container.add(Box.createVerticalStrut(Block.SIZE / 2));
+		
+		JPanel list = new JPanel();
+		list.setLayout(new BoxLayout(list, BoxLayout.Y_AXIS));
+		list.setOpaque(false);
+		for (int i = 0; i < 100; i++) {
+			JPanel entry = initializeEntry(i + 1);
+			list.add(entry);
 		}
+		
+		JScrollPane scroller = new JScrollPane(list, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		scroller.setBorder(BorderFactory.createLineBorder(new Color(0, 0, 0, 25), 16, true));
+		scroller.getVerticalScrollBar().setUI(new CustomScrollBarUI());
+		scroller.getVerticalScrollBar().setBackground(new Color(0, 0, 0, 25));
+		scroller.getVerticalScrollBar().setUnitIncrement(20);
+		scroller.setAlignmentX(CENTER_ALIGNMENT);
+		scroller.setOpaque(false);
+		scroller.getViewport().setOpaque(false);
+		scroller.setMaximumSize(new Dimension(720, scroller.getPreferredSize().height));
+		container.add(scroller);
+		container.add(Box.createVerticalStrut(Block.SIZE * 2));
+		add(container);
 	}
 	
 	private JPanel initializeEntry(int rank) {
@@ -117,29 +109,14 @@ public class LeaderboardScreen extends JPanel implements ActionListener {
 	}
 	
 	public void paintComponent(Graphics g) {
-		drawBackground(g);
-	}
-	
-	public void drawBackground(Graphics g) {
-		Dimension size = getPreferredSize();
-		double ratio = size.getWidth() / size.getHeight();
-		double imgRatio = (double) bg.getWidth(this) / bg.getHeight(this);
-		int width, height;
-		if (ratio > imgRatio) {
-			width = (int) size.getWidth();
-			height = (int) (size.getWidth() / bg.getWidth(this) * bg.getHeight(this));
-		} else {
-			height = (int) size.getHeight();
-			width = (int) (ratio * height);
-		}
-		g.drawImage(bg, -(width - (int) size.getWidth()) / 2, -(height - (int) size.getHeight()) / 2, width, height, this);
+		g.drawImage(new PlainTheme().getBackgroundImage(), 0, 0, null);
 	}
 	
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		String cmd = e.getActionCommand();
 		if (cmd.startsWith("Level ")) {
-			frame.setContentPane(new Level(Integer.parseInt(cmd.substring(6)), "img/backgrounds/grasslands.png", frame, this));
+			frame.setContentPane(new Level(Integer.parseInt(cmd.substring(6)), true, frame, this));
 		} else if (e.getSource() == lastPage) {
 			if (page == 1) {
 				page = 4;
@@ -157,7 +134,7 @@ public class LeaderboardScreen extends JPanel implements ActionListener {
 		} else if (e.getSource() == exit) {
 			frame.setContentPane(new MainScreen(frame));
 		}
-		click.play(false);
+		SoundEffect.CLICK.play(false);
 		frame.repaint();
 		frame.revalidate();
 	}

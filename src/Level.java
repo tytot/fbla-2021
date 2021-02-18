@@ -1,9 +1,11 @@
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.font.FontRenderContext;
+import java.awt.font.GlyphVector;
 import java.awt.geom.AffineTransform;
-import java.io.File;
+import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -11,15 +13,22 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class Level extends JPanel implements MouseListener, MouseMotionListener, ActionListener {
+	
 	private JFrame frame;
 	private JPanel last;
 	private int levelNumber;
+	private Theme theme;
 	
-	private Timer timer = new Timer(10, this);
-	
-	private Image bg;
+	private Timer timer = new Timer(25, this);
+	private int xOffset;
+	private Timer flashTimer = new Timer(500, this);
+	private int numFlashes = 0;
+	private Timer changeTimer = new Timer(500, this);
 
 	private Map map, startMap;
 	private int[] storedPowerUps = { 0, 0, 0 };
@@ -30,21 +39,28 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 	private boolean firstMovement = true;
 	private boolean complete = false;
 	
-	private long startTime, endTime;
+	private long openTime, startTime, endTime, changeTime, fadeTime;
 	
 	private JButton lastLevel, nextLevel, exit, reset;
 	private JLabel timerLabel;
 	private JLabel growCount, splitCount, mergeCount;
 	private JLabel[] hearts = new JLabel[3];
-	private JPanel moveHelp, growHelp, mergeHelp, finishHelp;
-	private JPanel[] splitHelp = new JPanel[3];
+	private List<JPanel> helpPanels = new ArrayList<JPanel>();
 	
-	private HashMap<String, SoundEffect> soundEffects = new HashMap<String, SoundEffect>();
-	
-	Level(int levelNumber, String bgPath, JFrame frame, JPanel last) {
+	Level(int levelNumber, boolean enterRight, JFrame frame, JPanel last) {
 		this.frame = frame;
 		this.last = last;
 		this.levelNumber = levelNumber;
+		this.xOffset = enterRight ? Window.DIMENSIONS.width : -Window.DIMENSIONS.width;
+		if (levelNumber <= 6) {
+			this.theme = new PlainTheme();
+		} else if (levelNumber <= 12) {
+			this.theme = new RainyTheme();
+		} else if (levelNumber <= 18) {
+			this.theme = new SnowyTheme();
+		} else {
+			this.theme = new SandyTheme();
+		}
 		setLayout(null);
 		addMouseListener(this);
 		addMouseMotionListener(this);
@@ -52,24 +68,21 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 		requestFocus();
 		requestFocusInWindow();
 		try {
-			bg = ImageIO.read(new File(bgPath));
 			List<String> lines = Files.readAllLines(Paths.get("levels/level" + levelNumber + ".txt"));
-			map = new Map(lines);
+			map = new Map(theme, lines);
 			startMap = new Map(map);
 			for (Point startPos : map.getStartingPositions()) {
 				player.addBlock(startPos.x, startPos.y);
 			}
 			player.calculateRelativePositions(player.getBlocks());
-			storedPowerUps = new int[] {0,0,0};
 			initializeUI();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		bindKeys();
-		initializeSoundEffects();
-//		soundEffects.get("start").play(false);
-		startTime = System.currentTimeMillis();
-		endTime = startTime;
+		openTime = System.currentTimeMillis();
+		if (theme.getBackgroundNoise() != null) {
+			theme.getBackgroundNoise().play(true);
+		}
 		timer.start();
 	}
 	
@@ -118,20 +131,18 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 			add(hearts[i]);
 		}
 		
-		moveHelp = UIFactory.createHelpPanel("Press A or left arrow key to move left. Press D or right arrow key to move right.", 300, 150);
 		if (levelNumber == 1) {
-			add(moveHelp);
-			revalidate();
-		}
-		growHelp = UIFactory.createHelpPanel("Hover your cursor next to your block. Click to grow there.", new ImageIcon("img/sprites/powerups/grow.png"), 900, 150);
-		splitHelp[0] = UIFactory.createHelpPanel("Right click to begin to split.", new ImageIcon("img/sprites/powerups/split.png"), 250, 350);
-		splitHelp[1] = UIFactory.createHelpPanel("Click the line where you want to split.", new ImageIcon("img/sprites/powerups/split.png"), 250, 350);
-		splitHelp[2] = UIFactory.createHelpPanel("Choose a side to keep.", new ImageIcon("img/sprites/powerups/split.png"), 250, 350);
-		mergeHelp = UIFactory.createHelpPanel("Press SHIFT to merge with adjacent abandoned blocks.", new ImageIcon("img/sprites/powerups/merge.png"), 950, 300);
-		finishHelp = UIFactory.createHelpPanel("To complete a level, all blocks must either be on a button or off the ground.", 100, 600);
-		if (levelNumber == 4) {
-			add(finishHelp);
-			revalidate();
+			helpPanels.add(UIFactory.createHelpPanel("Press A or left arrow key to move left. Press D or right arrow key to move right.", 300, 150));
+		} else if (levelNumber == 2) {
+			helpPanels.add(UIFactory.createHelpPanel("Hover your cursor next to your block. Click to grow there.", new ImageIcon("img/sprites/powerups/grow.png"), 900, 150));
+		} else if (levelNumber == 7) {
+			helpPanels.add(UIFactory.createHelpPanel("Right click to begin to split.", new ImageIcon("img/sprites/powerups/split.png"), 250, 350));
+			helpPanels.add(UIFactory.createHelpPanel("Click the line where you want to split.", new ImageIcon("img/sprites/powerups/split.png"), 250, 350));
+			helpPanels.add(UIFactory.createHelpPanel("Choose a side to keep.", new ImageIcon("img/sprites/powerups/split.png"), 250, 350));
+		} else if (levelNumber == 15) {
+			helpPanels.add(UIFactory.createHelpPanel("Press SHIFT to merge with adjacent abandoned blocks.", new ImageIcon("img/sprites/powerups/merge.png"), 950, 300));
+		} else if (levelNumber == 4) {
+			helpPanels.add(UIFactory.createHelpPanel("To complete a level, all blocks must either be on a button or off the ground.", 100, 600));
 		}
 	}
 	
@@ -145,113 +156,16 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 		timerLabel.setBounds((getPreferredSize().width - timerSize.width) / 2, 20, timerSize.width, timerSize.height);
 		
 		growCount.setText("x" + storedPowerUps[0]);
-		mergeCount.setText("x" + storedPowerUps[1]);
-		splitCount.setText("x" + storedPowerUps[2]);
+		splitCount.setText("x" + storedPowerUps[1]);
+		mergeCount.setText("x" + storedPowerUps[2]);
 	}
-	
-	private void bindKeys() {
-		Action leftDown = new AbstractAction() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (player.getState() == Player.NORMAL) {
-					player.setMovement(Movement.LEFT);
-					if (firstMovement) {
-						firstMovement = false;
-					}
-				}
-			}
-		};
-		Action rightDown = new AbstractAction() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (player.getState() == Player.NORMAL) {
-					player.setMovement(Movement.RIGHT);
-					if (firstMovement) {
-						firstMovement = false;
-					}
-				}
-			}
-		};
-		Action leftUp = new AbstractAction() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (player.getState() == Player.NORMAL) {
-					if (player.getMovement() != Movement.RIGHT) {
-						player.setMovement(Movement.STILL_LEFT);
-					}
-				}
-			}
-		};
-		Action rightUp = new AbstractAction() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (player.getState() == Player.NORMAL) {
-					if (player.getMovement() != Movement.LEFT) {
-						player.setMovement(Movement.STILL_RIGHT);
-					}
-				}
-			}
-		};
-        registerKeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0, false), "left-press", leftDown);
-        registerKeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_A, 0, false), "left-press", leftDown);
-        registerKeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0, false), "right-press", rightDown);
-        registerKeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_D, 0, false), "right-press", rightDown);
-        registerKeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0, true), "left-release", leftUp);
-        registerKeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_A, 0, true), "left-release", leftUp);
-        registerKeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0, true), "right-release", rightUp);
-        registerKeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_D, 0, true), "right-release", rightUp);
-        registerKeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_SHIFT, InputEvent.SHIFT_DOWN_MASK, false), "shift-press", new AbstractAction() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (player.getState() == Player.NORMAL) {
-					if (storedPowerUps[2] > 0) {
-						ArrayList<PlayerBlock> mergedBlocks = player.merge(map);
-						if (mergedBlocks.size() > 0) {
-							for (PlayerBlock pBlock : mergedBlocks) {
-								Point worldCoords = pBlock.getWorldCoords();
-								map.getChars()[worldCoords.y][worldCoords.x] = '.';
-								map.getBlocks()[worldCoords.y][worldCoords.x] = new SpaceBlock();
-								player.addBlock(worldCoords.x, worldCoords.y);
-							}
-							player.calculateRelativePositions(player.getBlocks());
-							storedPowerUps[2]--;
-							soundEffects.get("merge").play(false);
-							if (levelNumber == 15) {
-								remove(mergeHelp);
-								revalidate();
-							}
-						}
-					}
-				}
-			}
-		});
-	}
-
-    private void registerKeyBinding(KeyStroke keyStroke, String name, Action action) {
-        InputMap im = getInputMap(WHEN_IN_FOCUSED_WINDOW);
-        ActionMap am = getActionMap();
-        im.put(keyStroke, name);
-        am.put(name, action);
-    }
-    
-    private void initializeSoundEffects() {
-		soundEffects.put("click", new SoundEffect(SoundEffect.CLICK));
-		soundEffects.put("pickup", new SoundEffect(SoundEffect.PICKUP));
-		soundEffects.put("grow", new SoundEffect(SoundEffect.GROW));
-		soundEffects.put("split", new SoundEffect(SoundEffect.SPLIT));
-		soundEffects.put("sad", new SoundEffect(SoundEffect.SAD));
-		soundEffects.put("merge", new SoundEffect(SoundEffect.MERGE));
-		soundEffects.put("buttonDown", new SoundEffect(SoundEffect.BUTTON_DOWN));
-		soundEffects.put("buttonUp", new SoundEffect(SoundEffect.BUTTON_UP));
-		soundEffects.put("death", new SoundEffect(SoundEffect.DEATH));
-		soundEffects.put("success", new SoundEffect(SoundEffect.SUCCESS));
-		soundEffects.put("start", new SoundEffect(SoundEffect.START));
-    }
     
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
 		Graphics2D g2 = (Graphics2D) g;
-		drawBackground(g);
+		g2.drawImage(theme.getBackgroundImage(), 0, 0, null);
+		theme.drawParticles(g2, player, map);
+		
 		MapBlock[][] blocks = map.getBlocks();
 		for (int i = 0; i < blocks.length; i++) {
 			for (int j = 0; j < blocks[0].length; j++) {
@@ -260,11 +174,11 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 				if (img != null) {
 					if (block instanceof PowerUp) {
 						AffineTransform old = g2.getTransform();
-						g2.rotate(powerUpAngle, (j + 0.5) * Block.SIZE, (i + 0.5) * Block.SIZE);
-						g2.drawImage(img, j * Block.SIZE, i * Block.SIZE, Block.SIZE, Block.SIZE, this);
+						g2.rotate(powerUpAngle, (j + 0.5) * Block.SIZE + xOffset, (i + 0.5) * Block.SIZE);
+						g2.drawImage(img, j * Block.SIZE + xOffset, i * Block.SIZE, null);
 						g2.setTransform(old);
 					} else {
-						g2.drawImage(img, j * Block.SIZE, i * Block.SIZE, Block.SIZE, Block.SIZE, this);
+						g2.drawImage(img, j * Block.SIZE + xOffset, i * Block.SIZE, null);
 					}
 				}
 			}
@@ -272,7 +186,7 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 		ArrayList<PlayerBlock> pBlocks = player.getBlocks();
 		for (PlayerBlock pBlock : pBlocks) {
 			Point pixelCoords = pBlock.getPixelCoords();
-			g2.drawImage(pBlock.getImage(), pixelCoords.x, pixelCoords.y, Block.SIZE, Block.SIZE, this);
+			g2.drawImage(pBlock.getImage(), pixelCoords.x + xOffset, pixelCoords.y, null);
 //			g2.setColor(Color.RED.darker());
 //			Point worldCoords = pBlock.getWorldCoords();
 //			for (Point offset : sides.keySet()) {
@@ -287,17 +201,15 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 			PlayerBlock highlightedBlock = player.getHighlightedBlock();
 			if (highlightedBlock != null) {
 				Point highlightedPoint = highlightedBlock.getPixelCoords();
-				g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-				g2.drawImage(highlightedBlock.getImage(), highlightedPoint.x, highlightedPoint.y, Block.SIZE, Block.SIZE, this);
-				g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+				g2.drawImage(highlightedBlock.getImage(), highlightedPoint.x + xOffset, highlightedPoint.y, null);
 			}
 		} else if (state == Player.SPLITTING) {
 			Point[] splitLine = player.getSplitLine();
 			if (splitLine != null) {
 				g2.setColor(Color.WHITE);
 				g2.setStroke(new BasicStroke(4, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER));
-				g2.drawLine(splitLine[0].x * Block.SIZE, splitLine[0].y * Block.SIZE,
-						splitLine[1].x * Block.SIZE, splitLine[1].y * Block.SIZE);
+				g2.drawLine(splitLine[0].x * Block.SIZE + xOffset, splitLine[0].y * Block.SIZE,
+						splitLine[1].x * Block.SIZE + xOffset, splitLine[1].y * Block.SIZE);
 			}
 		} else if (state == Player.CHOOSING) {
 			int chosenSide = player.getChosenSide();
@@ -306,26 +218,51 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 				g2.setComposite(ac);
 				for (PlayerBlock pBlock : player.getSplitBlocks(chosenSide == 0 ? 1 : 0)) {
 					Point pixelCoords = pBlock.getPixelCoords();
-					g2.drawImage(pBlock.getImage(), pixelCoords.x, pixelCoords.y, Block.SIZE, Block.SIZE, this);
+					g2.drawImage(pBlock.getImage(), pixelCoords.x + xOffset, pixelCoords.y, null);
 				}
+				g2.setComposite(AlphaComposite.SrcOver);
 			}
 		}
-		g2.setComposite(AlphaComposite.SrcOver);
+		if (numHearts == 0) {
+			drawGameOver(g2);
+		} else if (complete && levelNumber == 24) {
+			drawGameComplete(g2);
+		}
 	}
 	
-	private void drawBackground(Graphics g) {
-		Dimension size = getPreferredSize();
-		double ratio = size.getWidth() / size.getHeight();
-		double imgRatio = (double) bg.getWidth(this) / bg.getHeight(this);
-		int width, height;
-		if (ratio > imgRatio) {
-			width = (int) size.getWidth();
-			height = (int) (size.getWidth() / bg.getWidth(this) * bg.getHeight(this));
-		} else {
-			height = (int) size.getHeight();
-			width = (int) (ratio * height);
-		}
-		g.drawImage(bg, -(width - (int) size.getWidth()) / 2, -(height - (int) size.getHeight()) / 2, width, height, this);
+	private void drawGameOver(Graphics2D g2) {
+		long elapsed = Math.min(1000, System.currentTimeMillis() - fadeTime);
+		
+		double scale = 9.0 * ((1000 - elapsed) / 1000.0) + 1;
+		double angle = elapsed * (4 * 360 / 1000.0);
+		float opacity = elapsed / 1000f;
+		
+		AlphaComposite ac = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, opacity);
+		g2.setComposite(ac);
+		
+		g2.setColor(Color.BLACK);
+		g2.fillRect(0, 0, Window.DIMENSIONS.width, Window.DIMENSIONS.height);
+		
+		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		g2.rotate(Math.toRadians(angle), Window.DIMENSIONS.width / 2, Window.DIMENSIONS.height / 2);
+		Font font = UIFactory.getFont((int) (scale * 160));
+		FontMetrics fm = g2.getFontMetrics(font);
+		Rectangle2D bounds = fm.getStringBounds("Game Over", g2);
+		g2.setFont(font);
+		g2.setColor(Color.WHITE);
+		g2.drawString("Game Over", (Window.DIMENSIONS.width - (int) bounds.getWidth()) / 2, (Window.DIMENSIONS.height - (int) bounds.getHeight()) / 2 + fm.getAscent());
+	}
+	
+	private void drawGameComplete(Graphics2D g2) {
+		long elapsed = Math.min(1000, System.currentTimeMillis() - fadeTime);
+		
+		float opacity = elapsed / 1000f;
+		
+		AlphaComposite ac = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, opacity);
+		g2.setComposite(ac);
+		
+		g2.setColor(Color.WHITE);
+		g2.fillRect(0, 0, Window.DIMENSIONS.width, Window.DIMENSIONS.height);
 	}
 
 	@Override
@@ -336,16 +273,16 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 				if (SwingUtilities.isRightMouseButton(arg0) && storedPowerUps[1] > 0 && player.getBlocks().size() > 1) {
 					player.startSplitting();
 					if (levelNumber == 7) {
-						remove(splitHelp[0]);
-						add(splitHelp[1]);
+						remove(helpPanels.get(0));
+						add(helpPanels.get(1));
 						revalidate();
 					}
 				} else if (SwingUtilities.isLeftMouseButton(arg0) && player.getHighlightedBlock() != null) {
 					player.confirmBuild(map);
 					--storedPowerUps[0];
-					soundEffects.get("grow").play(false);
+					SoundEffect.GROW.play(false);
 					if (levelNumber == 2) {
-						remove(growHelp);
+						remove(helpPanels.get(0));
 						revalidate();
 					}
 				}
@@ -353,10 +290,10 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 				if (SwingUtilities.isLeftMouseButton(arg0) && player.getSplitLine() != null) {
 					player.splitIntoSides();
 					--storedPowerUps[1];
-					soundEffects.get("split").play(false);
+					SoundEffect.SPLIT.play(false);
 					if (levelNumber == 7) {
-						remove(splitHelp[1]);
-						add(splitHelp[2]);
+						remove(helpPanels.get(1));
+						add(helpPanels.get(2));
 						revalidate();
 					}
 				}
@@ -371,18 +308,14 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 					for (int i = 0; i < map.getChars().length; i++) {
 						for (int j = 0; j < map.getChars()[0].length; j++) {
 							if (map.getChars()[i][j] == 'C') {
-								try {
-									map.getBlocks()[i][j] = new CryingPlayerBlock(map.relativePosition(i, j));
-								} catch (IOException e) {
-									e.printStackTrace();
-								}
+								map.getBlocks()[i][j] = new CryingPlayerBlock(map.relativePosition(i, j));
 							}
 						}
 					}
 				}
-				soundEffects.get("sad").play(false);
+				SoundEffect.SAD.play(false);
 				if (levelNumber == 7) {
-					remove(splitHelp[2]);
+					remove(helpPanels.get(2));
 					revalidate();
 				}
 			}
@@ -442,74 +375,112 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
 		if (arg0.getSource() == lastLevel) {
-			changeScreen(new Level(--levelNumber, "img/backgrounds/grasslands.png", frame, last));
-			soundEffects.get("click").play(false);
+			changeLevel(levelNumber - 1);
+			SoundEffect.CLICK.play(false);
 		} else if (arg0.getSource() == nextLevel) {
-			changeScreen(new Level(++levelNumber, "img/backgrounds/grasslands.png", frame, last));
-			soundEffects.get("click").play(false);
+			changeLevel(levelNumber + 1);
+			SoundEffect.CLICK.play(false);
 		} else if (arg0.getSource() == reset) {
 			resetLevel();
-			soundEffects.get("click").play(false);
+			SoundEffect.CLICK.play(false);
 		} else if (arg0.getSource() == exit) {
+			if (theme.getBackgroundNoise() != null) {
+				theme.getBackgroundNoise().stop();
+			}
 			changeScreen(last);
-			soundEffects.get("click").play(false);
+			SoundEffect.CLICK.play(false);
 		} else if (arg0.getSource() == timer) {
-			endTime = System.currentTimeMillis();
-			updateHUD();
-			
+			if (startTime == 0) {
+				xOffset = (int) Math.signum(xOffset) * Math.max(0, (int) (Window.DIMENSIONS.width * (500.0 - System.currentTimeMillis() + openTime) / 500));
+				if (xOffset == 0) {
+					bindKeys();
+					if (levelNumber == 1 || levelNumber == 4) {
+						add(helpPanels.get(0));
+					}
+					startTime = System.currentTimeMillis();
+				}
+			} else if (xOffset != 0) {
+				xOffset = (int) (Math.signum(xOffset) * (Window.DIMENSIONS.width * (System.currentTimeMillis() - changeTime) / 500));
+			}
 			powerUpAngle += 0.05;
-			if (powerUpAngle >= 2 * Math.PI)
+			if (powerUpAngle >= 2 * Math.PI) {
 				powerUpAngle = 0;
+			}
 			player.move(map);
-			pickUpPowerUp();
 			
-			HashSet<PlayerBlock> blocksToSquish = new HashSet<PlayerBlock>();
-			for (Point gbLoc : map.getGoalBlocks()) {
-				GoalBlock g = (GoalBlock) map.getBlocks()[gbLoc.y][gbLoc.x];
-				ArrayList<PlayerBlock> blocksOn = player.blocksOnGoalBlock(gbLoc);
-				if (blocksOn.size() > 0 && !g.isPressed()) {
-					g.press();
-					soundEffects.get("buttonDown").play(false);
-				} else if (blocksOn.size() == 0 && g.isPressed()){
-					g.unpress();
-					soundEffects.get("buttonUp").play(false);
+			if (!complete) {
+				if (xOffset == 0) {
+					endTime = System.currentTimeMillis();
 				}
-				blocksToSquish.addAll(blocksOn);
+				updateHUD();
+				pickUpPowerUp();
+				triggerButtons();
+				if (player.isOutOfBounds(map) && numHearts > 0) {
+					numHearts--;
+					remove(hearts[numHearts]);
+					SoundEffect.DEATH.play(false);
+					if (numHearts == 0) {
+						fadeTime = System.currentTimeMillis();
+						this.removeAll();
+						SoundEffect.MUSIC.stop();
+						if (theme.getBackgroundNoise() != null) {
+							theme.getBackgroundNoise().play(true);
+						}
+						SoundEffect.GAME_OVER.play(false);
+					} else {
+						resetLevel();
+					}
+				}
+				if (player.reachedGoal(map)) {
+					complete = true;
+					unbindKeys();
+					if (levelNumber == 24) {
+						fadeTime = System.currentTimeMillis();
+						this.removeAll();
+					}
+					if (player.getMovement() == Movement.LEFT)
+						player.setMovement(Movement.STILL_LEFT);
+					else if (player.getMovement() == Movement.RIGHT)
+						player.setMovement(Movement.STILL_RIGHT);
+					lastLevel.setEnabled(false);
+					nextLevel.setEnabled(false);
+					reset.setEnabled(false);
+				}
+			} else if (player.getMovement() == Movement.STILL && !flashTimer.isRunning() && !changeTimer.isRunning()) {
+				SoundEffect.SUCCESS.play(false);
+				flashTimer.start();
 			}
-			player.squishBlocks(blocksToSquish);
+			repaint();
+		} else if (arg0.getSource() == flashTimer) {
+			if (numFlashes == 4 && levelNumber != 24) {
+				changeLevel(levelNumber + 1);
+				flashTimer.stop();
+			}
+			timerLabel.setVisible(!timerLabel.isVisible());
+			numFlashes++;
+		} else if (arg0.getSource() == changeTimer) {
+			if (theme.getBackgroundNoise() != null) {
+				theme.getBackgroundNoise().stop();
+			}
+			changeTimer.stop();
 			
-			if (player.isOutOfBounds(map)) {
-				resetLevel();
-				numHearts--;
-				remove(hearts[numHearts]);
-				soundEffects.get("death").play(false);
-			}
-			if (!complete && player.reachedGoal(map)) {
-				complete = true;
-				if (player.getMovement() == Movement.LEFT)
-					player.setMovement(Movement.STILL_LEFT);
-				else if (player.getMovement() == Movement.RIGHT)
-					player.setMovement(Movement.STILL_RIGHT);
-				getInputMap(WHEN_IN_FOCUSED_WINDOW).clear();
-				lastLevel.setEnabled(false);
-				nextLevel.setEnabled(false);
-				reset.setEnabled(false);
-			} else if (complete && player.getMovement() == Movement.STILL) {
-				soundEffects.get("success").play(false);
-				try {
-					Thread.sleep(2000);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-				timer.stop();
-				if (levelNumber != 24)
-					changeScreen(new Level(++levelNumber, "img/backgrounds/grasslands.png", frame, last));
-			}
+			int newLevelNumber = Integer.parseInt(arg0.getActionCommand());
+			changeScreen(new Level(newLevelNumber, newLevelNumber > levelNumber, frame, last));
 		}
-		repaint();
+	}
+	
+	private void changeLevel(int newLevelNumber) {
+		xOffset = (int) Math.signum(levelNumber - newLevelNumber);
+		changeTime = System.currentTimeMillis();
+		changeTimer.start();
+		changeTimer.setActionCommand(newLevelNumber + "");
+		for (int i = 0; i < helpPanels.size(); i++) {
+			remove(helpPanels.get(0));
+		}
 	}
 	
 	private void changeScreen(JPanel screen) {
+		timer.stop();
 		frame.setContentPane(screen);
 		frame.revalidate();
 		frame.repaint();
@@ -521,9 +492,10 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 		player.resetPositions(map.getStartingPositions());
 		player.setState(Player.NORMAL);
 		storedPowerUps = new int[] {0,0,0};
-		remove(growHelp);
-		for (int i = 0; i < 3; i++) {
-			remove(splitHelp[i]);
+		if (levelNumber != 1 && levelNumber != 4) {
+			for (int i = 0; i < helpPanels.size(); i++) {
+				remove(helpPanels.get(0));
+			}
 		}
 	}
 
@@ -537,19 +509,19 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 				if (block instanceof GrowPowerUp) {
 					++storedPowerUps[0];
 					if (levelNumber == 2) {
-						add(growHelp);
+						add(helpPanels.get(0));
 						revalidate();
 					}
 				} else if (block instanceof SplitPowerUp) {
 					++storedPowerUps[1];
 					if (levelNumber == 7) {
-						add(splitHelp[0]);
+						add(helpPanels.get(0));
 						revalidate();
 					}
 				} else if (block instanceof MergePowerUp) {
 					++storedPowerUps[2];
 					if (levelNumber == 15) {
-						add(mergeHelp);
+						add(helpPanels.get(0));
 						revalidate();
 					}
 				} else if (block instanceof QuadPowerUp) {
@@ -557,15 +529,125 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 				}
 				if (block instanceof PowerUp) {
 					map.getBlocks()[check.y][check.x] = new SpaceBlock();
-					soundEffects.get("pickup").play(false);
+					SoundEffect.PICKUP.play(false);
 				}
 			}
 		}
 	}
+	
+	private void triggerButtons() {
+		HashSet<PlayerBlock> blocksToSquish = new HashSet<PlayerBlock>();
+		for (Point gbLoc : map.getGoalBlocks()) {
+			GoalBlock g = (GoalBlock) map.getBlocks()[gbLoc.y][gbLoc.x];
+			ArrayList<PlayerBlock> blocksOn = player.blocksOnGoalBlock(gbLoc);
+			if (blocksOn.size() > 0 && !g.isPressed()) {
+				g.press();
+				SoundEffect.BUTTON_DOWN.play(false);
+			} else if (blocksOn.size() == 0 && g.isPressed()){
+				g.unpress();
+				SoundEffect.BUTTON_UP.play(false);
+			}
+			blocksToSquish.addAll(blocksOn);
+		}
+		player.squishBlocks(blocksToSquish);
+	}
+	
+	private void bindKeys() {
+		Action leftDown = new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (player.getState() == Player.NORMAL) {
+					player.setMovement(Movement.LEFT);
+					if (firstMovement) {
+						firstMovement = false;
+					}
+				}
+			}
+		};
+		Action rightDown = new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (player.getState() == Player.NORMAL) {
+					player.setMovement(Movement.RIGHT);
+					if (firstMovement) {
+						firstMovement = false;
+					}
+				}
+			}
+		};
+		Action leftUp = new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (player.getState() == Player.NORMAL) {
+					if (player.getMovement() != Movement.RIGHT) {
+						player.setMovement(Movement.STILL_LEFT);
+					}
+				}
+			}
+		};
+		Action rightUp = new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (player.getState() == Player.NORMAL) {
+					if (player.getMovement() != Movement.LEFT) {
+						player.setMovement(Movement.STILL_RIGHT);
+					}
+				}
+			}
+		};
+		Action shiftDown = new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (player.getState() == Player.NORMAL) {
+					if (storedPowerUps[2] > 0) {
+						ArrayList<PlayerBlock> mergedBlocks = player.merge(map);
+						if (mergedBlocks.size() > 0) {
+							for (PlayerBlock pBlock : mergedBlocks) {
+								Point worldCoords = pBlock.getWorldCoords();
+								map.getChars()[worldCoords.y][worldCoords.x] = '.';
+								map.getBlocks()[worldCoords.y][worldCoords.x] = new SpaceBlock();
+								player.addBlock(worldCoords.x, worldCoords.y);
+							}
+							player.calculateRelativePositions(player.getBlocks());
+							storedPowerUps[2]--;
+							SoundEffect.MERGE.play(false);
+							if (levelNumber == 15) {
+								remove(helpPanels.get(0));
+								revalidate();
+							}
+						}
+					}
+				}
+			}
+		};
+		
+		InputMap im = getInputMap(WHEN_IN_FOCUSED_WINDOW);
+		im.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0, false), "left-press");
+		im.put(KeyStroke.getKeyStroke(KeyEvent.VK_A, 0, false), "left-press");
+		im.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0, false), "right-press");
+		im.put(KeyStroke.getKeyStroke(KeyEvent.VK_D, 0, false), "right-press");
+		im.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0, true), "left-release");
+		im.put(KeyStroke.getKeyStroke(KeyEvent.VK_A, 0, true), "left-release");
+		im.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0, true), "right-release");
+		im.put(KeyStroke.getKeyStroke(KeyEvent.VK_D, 0, true), "right-release");
+		im.put(KeyStroke.getKeyStroke(KeyEvent.VK_SHIFT, InputEvent.SHIFT_DOWN_MASK, false), "shift-press");
+		
+		ActionMap am = getActionMap();
+		am.put("left-press", leftDown);
+		am.put("left-release", leftUp);
+		am.put("right-press", rightDown);
+		am.put("right-release", rightUp);
+		am.put("shift-press", shiftDown);
+	}
+	
+	private void unbindKeys() {
+		ActionMap am = getActionMap();
+		am.clear();
+	}
 
 	@Override
 	public Dimension getPreferredSize() {
-		return new Dimension(map.getBlocks()[0].length * Block.SIZE, map.getBlocks().length * Block.SIZE);
+		return Window.DIMENSIONS;
 	}
 
 //	private static void runGame() {

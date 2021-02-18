@@ -5,14 +5,14 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 
 public class CryingPlayerBlock extends MapBlock {
-
+	
 	private Image img;
 	
-	public CryingPlayerBlock(int relativePosition) throws IOException {
-		String path = "img/sprites/crying/crying" + ends[relativePosition] + ".png";
-		img = ImageIO.read(new File(path));
+	public CryingPlayerBlock(int relativePosition) {
+		img = ImageFactory.fetchImage("img/sprites/crying/crying" + ENDS[relativePosition] + ".png");
 	}
 	
+	@Override
 	public Image getImage() {
 		return img;
 	}

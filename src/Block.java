@@ -18,7 +18,7 @@ public abstract class Block {
 	public static final int LEFT_AND_BOTTOM_RIGHT = 11;
 	public static final int RIGHT_AND_BOTTOM_LEFT = 12;
 	
-	protected final String[] ends = { "", "Bottom", "BottomLeft", "BottomRight", "Center", "Left", "Mid", "Right", "Top", "TopLeft", "TopRight", "LeftAndBottomRight", "RightAndBottomLeft" };
+	public final static String[] ENDS = { "", "Bottom", "BottomLeft", "BottomRight", "Center", "Left", "Mid", "Right", "Top", "TopLeft", "TopRight", "LeftAndBottomRight", "RightAndBottomLeft" };
 	
 	public abstract Image getImage();
 }

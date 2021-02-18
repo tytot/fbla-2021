@@ -2,20 +2,25 @@
 import java.io.*;
 import javax.sound.sampled.*;
 
-public class SoundEffect {
+public enum SoundEffect {
 	
-	public static final String MUSIC = "audio/bg.wav";
-	public static final String CLICK = "audio/click.wav";
-	public static final String PICKUP = "audio/pickup.wav";
-	public static final String GROW = "audio/grow.wav";
-	public static final String SPLIT = "audio/split.wav";
-	public static final String SAD = "audio/sad.wav";
-	public static final String MERGE = "audio/merge.wav";
-	public static final String BUTTON_DOWN = "audio/button_down.wav";
-	public static final String BUTTON_UP = "audio/button_up.wav";
-	public static final String DEATH = "audio/death.wav";
-	public static final String SUCCESS = "audio/success.wav";
-	public static final String START = "audio/start.wav";
+	MUSIC("audio/bg.wav", -10f),
+	CLICK("audio/click.wav"),
+	PICKUP("audio/pickup.wav"),
+	GROW("audio/grow.wav"),
+	SPLIT("audio/split.wav"),
+	SAD("audio/sad.wav"),
+	MERGE("audio/merge.wav"),
+	BUTTON_DOWN("audio/button_down.wav"),
+	BUTTON_UP("audio/button_up.wav"),
+	DEATH("audio/death.wav"),
+	GAME_OVER("audio/game_over.wav"),
+	SUCCESS("audio/success.wav"),
+	START("audio/start.wav"),
+	
+	RAIN("audio/rain.wav", -20f),
+	SNOW("audio/snow.wav"),
+	WIND("audio/wind.wav");
 	
 	private AudioInputStream stream;
 	private Clip clip;
@@ -37,8 +42,9 @@ public class SoundEffect {
 	}
 
 	public void play(boolean loop) {
-		if (clip.isRunning())
+		if (clip.isRunning()) {
 			clip.stop();
+		}
 		clip.setFramePosition(0);
 		clip.start();
 		if (loop)

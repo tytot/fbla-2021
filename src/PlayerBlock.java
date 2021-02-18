@@ -6,14 +6,10 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 
 public class PlayerBlock extends Block {
-
+	
 	private Point worldCoords;
 	private Point pixelCoords;
 	private int relativePosition;
-	private Image img;
-	private final String NORMAL_PATH = "img/sprites/player/body";
-	private final String SMALL_PATH = "img/sprites/player/small/body";
-	private String imgPathPrefix = NORMAL_PATH;
 	private boolean onGoalBlock = false;
 	
 	PlayerBlock(int worldX, int worldY) {
@@ -45,25 +41,10 @@ public class PlayerBlock extends Block {
 	
 	public void setOnGoalBlock(boolean onGoalBlock) {
 		this.onGoalBlock = onGoalBlock;
-		if (onGoalBlock) {
-			imgPathPrefix = SMALL_PATH;
-		} else {
-			imgPathPrefix = NORMAL_PATH;
-		}
-	}
-	
-	public String getImagePathPrefix() {
-		return imgPathPrefix;
 	}
 
 	public void setRelativePosition(int relativePos) {
 		relativePosition = relativePos;
-		try {
-			String path = getImagePathPrefix() + ends[relativePosition] + ".png";
-			img = ImageIO.read(new File(path));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
 	}
 	
 	@Override
@@ -77,9 +58,16 @@ public class PlayerBlock extends Block {
 			return false;
 		return worldCoords.equals(((PlayerBlock) obj).getWorldCoords());
 	}
-
+	
+	public String getImagePathPrefix() {
+		if (!onGoalBlock) {
+			return "img/sprites/player/body";
+		}
+		return "img/sprites/player/small/body";
+	}
+	
 	@Override
 	public Image getImage() {
-		return img;
+		return ImageFactory.fetchImage(getImagePathPrefix() + ENDS[relativePosition] + ".png");
 	}
 }

@@ -8,15 +8,15 @@ public abstract class PowerUp extends MapBlock {
 	
 	private Image img;
 	
-	PowerUp() throws IOException {
-		img = ImageIO.read(new File(imagePath()));
+	PowerUp() {
+		img = ImageFactory.fetchImage(getImagePath());
 	}
+	
+	public abstract String getImagePath();
 	
 	public boolean isSolid() {
 		return false;
 	}
-	
-	public abstract String imagePath();
 	
 	public Image getImage() {
 		return img;

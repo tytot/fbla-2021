@@ -1,13 +1,7 @@
-import java.awt.Image;
 import java.awt.Point;
-import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.util.List;
 import java.util.ArrayList;
-
-import javax.swing.ImageIcon;
-import javax.swing.JLabel;
 
 public class Map {
 	
@@ -16,7 +10,7 @@ public class Map {
 	private ArrayList<Point> startingPositions = new ArrayList<Point>();
 	private ArrayList<Point> goalBlocks = new ArrayList<Point>();
 	
-	Map(List<String> lines) throws IOException {
+	Map(Theme theme, List<String> lines) throws IOException {
 		String firstLine = "";
 		for (int i = 0; i < lines.get(0).length(); i++) {
 			firstLine += ".";
@@ -36,7 +30,7 @@ public class Map {
 				if (block == '.') {
 					map[i][j] = new SpaceBlock();
 				} else if (block == 'B') {
-					map[i][j] = new SolidBlock(relativePosition(i, j));
+					map[i][j] = new SolidBlock(theme, relativePosition(i, j));
 				} else if (block == 'C') {
 					map[i][j] = new CryingPlayerBlock(relativePosition(i, j));
 				} else if (block == 'G') {
