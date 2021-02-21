@@ -46,7 +46,7 @@ public class MainScreen extends JPanel implements ActionListener {
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource() == play) {
-			Level level = new Level(1, true, frame, this);
+			Level level = new Level(1, true, false, 0, frame, this);
 			frame.setContentPane(level);
 		} else if (e.getSource() == levels) {
 			frame.setContentPane(new LevelScreen(frame));

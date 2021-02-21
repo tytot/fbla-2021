@@ -14,6 +14,7 @@ import java.io.File;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
@@ -21,6 +22,7 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.border.LineBorder;
 
 public class LevelScreen extends JPanel implements ActionListener {
 	private JFrame frame;
@@ -74,8 +76,13 @@ public class LevelScreen extends JPanel implements ActionListener {
 		lastPage = UIFactory.createButton(new ImageIcon("img/ui/lastLevel.png"), new ImageIcon("img/ui/lastLevelPressed.png"));
 		lastPage.addActionListener(this);
 		navigation.add(lastPage);
+		JPanel chip = new TransparentRoundedPanel(new Color(0, 0, 0, 25));
+		chip.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 		pageNum = UIFactory.createLabel(page + " / 4", 36);
-		navigation.add(pageNum);
+		chip.add(pageNum);
+		navigation.add(Box.createHorizontalStrut(5));
+		navigation.add(chip);
+		navigation.add(Box.createHorizontalStrut(5));
 		nextPage = UIFactory.createButton(new ImageIcon("img/ui/nextLevel.png"), new ImageIcon("img/ui/nextLevelPressed.png"));
 		nextPage.addActionListener(this);
 		navigation.add(nextPage);
@@ -93,7 +100,7 @@ public class LevelScreen extends JPanel implements ActionListener {
 	public void actionPerformed(ActionEvent e) {
 		String cmd = e.getActionCommand();
 		if (cmd.startsWith("Level ")) {
-			frame.setContentPane(new Level(Integer.parseInt(cmd.substring(6)), true, frame, this));
+			frame.setContentPane(new Level(Integer.parseInt(cmd.substring(6)), true, true, 0, frame, this));
 		} else if (e.getSource() == lastPage) {
 			if (page == 1) {
 				page = 4;

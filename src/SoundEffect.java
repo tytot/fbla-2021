@@ -17,6 +17,7 @@ public enum SoundEffect {
 	GAME_OVER("audio/game_over.wav"),
 	SUCCESS("audio/success.wav"),
 	START("audio/start.wav"),
+	VICTORY("audio/victory.wav"),
 	
 	RAIN("audio/rain.wav", -20f),
 	SNOW("audio/snow.wav"),

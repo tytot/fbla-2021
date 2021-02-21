@@ -23,6 +23,7 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 	private JPanel last;
 	private int levelNumber;
 	private Theme theme;
+	private boolean timeTrial;
 	
 	private Timer timer = new Timer(25, this);
 	private int xOffset;
@@ -40,14 +41,20 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 	private boolean complete = false;
 	
 	private long openTime, startTime, endTime, changeTime, fadeTime;
+	private int cumulativeTime;
 	
-	private JButton lastLevel, nextLevel, exit, reset;
+	private Rectangle beamSpawnArea;
+	private List<int[]> beams = new ArrayList<int[]>();
+	
+	private JButton lastLevel, nextLevel, exit, reset, menu;
 	private JLabel timerLabel;
 	private JLabel growCount, splitCount, mergeCount;
 	private JLabel[] hearts = new JLabel[3];
 	private List<JPanel> helpPanels = new ArrayList<JPanel>();
 	
-	Level(int levelNumber, boolean enterRight, JFrame frame, JPanel last) {
+	private String sekrit = "";
+	
+	Level(int levelNumber, boolean enterRight, boolean timeTrial, int cumulativeTime, JFrame frame, JPanel last) {
 		this.frame = frame;
 		this.last = last;
 		this.levelNumber = levelNumber;
@@ -61,6 +68,9 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 		} else {
 			this.theme = new SandyTheme();
 		}
+		this.timeTrial = timeTrial;
+		this.cumulativeTime = cumulativeTime;
+		
 		setLayout(null);
 		addMouseListener(this);
 		addMouseMotionListener(this);
@@ -71,6 +81,12 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 			List<String> lines = Files.readAllLines(Paths.get("levels/level" + levelNumber + ".txt"));
 			map = new Map(theme, lines);
 			startMap = new Map(map);
+			if (!timeTrial && levelNumber == 24) {
+				Point goalBlock = map.getGoalBlocks().get(0);
+				Point goalPoint = new Point(Block.SIZE * goalBlock.x + Block.SIZE / 2, Block.SIZE * goalBlock.y + (Block.SIZE - GoalBlock.PRESSED_SIZE) / 2);
+				int radius = (int) Math.ceil(Math.sqrt(Math.pow(Window.DIMENSIONS.width, 2) + Math.pow(Window.DIMENSIONS.height, 2)));
+				beamSpawnArea = new Rectangle(goalPoint.x - radius, goalPoint.y - radius, 2 * radius, 2 * radius);
+			}
 			for (Point startPos : map.getStartingPositions()) {
 				player.addBlock(startPos.x, startPos.y);
 			}
@@ -80,9 +96,6 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 			e.printStackTrace();
 		}
 		openTime = System.currentTimeMillis();
-		if (theme.getBackgroundNoise() != null) {
-			theme.getBackgroundNoise().play(true);
-		}
 		timer.start();
 	}
 	
@@ -92,14 +105,14 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 		add(exit);
 		lastLevel = UIFactory.createButton(new ImageIcon("img/ui/lastLevel.png"), new ImageIcon("img/ui/lastLevelPressed.png"), 100, 15);
 		lastLevel.addActionListener(this);
-		if (levelNumber == 1) {
+		if (!timeTrial || levelNumber == 1) {
 			lastLevel.setEnabled(false);
 		}
 		add(lastLevel);
 		add(UIFactory.createLabel("Level " + levelNumber, 28, new Rectangle(155, 20, 190, 49)));
 		add(UIFactory.createLabel(new ImageIcon("img/ui/levelBar.png"), 155, 15));
 		nextLevel = UIFactory.createButton(new ImageIcon("img/ui/nextLevel.png"), new ImageIcon("img/ui/nextLevelPressed.png"), 355, 15);
-		if (levelNumber == 24) {
+		if (!timeTrial || levelNumber == 24) {
 			nextLevel.setEnabled(false);
 		}
 		nextLevel.addActionListener(this);
@@ -147,7 +160,7 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 	}
 	
 	private void updateHUD() {
-		int elapsed = (int) ((endTime - startTime) / 100);
+		int elapsed = cumulativeTime + (int) ((endTime - startTime) / 100);
 		int minutes = elapsed / 600, seconds = (elapsed % 600) / 10, decis = (elapsed % 600) % 10;
 		String time = minutes + ":" + String.format("%02d", seconds) + "." + decis;
 		
@@ -164,6 +177,10 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 		super.paintComponent(g);
 		Graphics2D g2 = (Graphics2D) g;
 		g2.drawImage(theme.getBackgroundImage(), 0, 0, null);
+		
+		if (!timeTrial && complete && levelNumber == 24) {
+			g2.translate((int) (21 * Math.random()) - 10, (int) (21 * Math.random()) - 10);
+		}
 		theme.drawParticles(g2, player, map);
 		
 		MapBlock[][] blocks = map.getBlocks();
@@ -186,15 +203,12 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 		ArrayList<PlayerBlock> pBlocks = player.getBlocks();
 		for (PlayerBlock pBlock : pBlocks) {
 			Point pixelCoords = pBlock.getPixelCoords();
-			g2.drawImage(pBlock.getImage(), pixelCoords.x + xOffset, pixelCoords.y, null);
-//			g2.setColor(Color.RED.darker());
-//			Point worldCoords = pBlock.getWorldCoords();
-//			for (Point offset : sides.keySet()) {
-//				if (!pBlocks.contains(new PlayerBlock(worldCoords.x + offset.x, worldCoords.y + offset.y))) {
-//					Rectangle rect = sides.get(offset);
-//					g2.fillRect(pixelCoords.x + rect.x, pixelCoords.y + rect.y, rect.width, rect.height);
-//				}
-//			}
+			if (!timeTrial && complete && levelNumber == 24) {
+				g2.setColor(Color.WHITE);
+				g2.fillRoundRect(pixelCoords.x, pixelCoords.y, Block.SIZE, Block.SIZE - GoalBlock.PRESSED_SIZE, 8, 8);
+			} else {
+				g2.drawImage(pBlock.getImage(), pixelCoords.x + xOffset, pixelCoords.y, null);
+			}
 		}
 		int state = player.getState();
 		if (state == Player.NORMAL) {
@@ -225,7 +239,7 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 		}
 		if (numHearts == 0) {
 			drawGameOver(g2);
-		} else if (complete && levelNumber == 24) {
+		} else if (!timeTrial && complete && levelNumber == 24) {
 			drawGameComplete(g2);
 		}
 	}
@@ -251,18 +265,41 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 		g2.setFont(font);
 		g2.setColor(Color.WHITE);
 		g2.drawString("Game Over", (Window.DIMENSIONS.width - (int) bounds.getWidth()) / 2, (Window.DIMENSIONS.height - (int) bounds.getHeight()) / 2 + fm.getAscent());
+		
+		if (System.currentTimeMillis() - fadeTime >= 7000 && menu == null) {
+			ImageIcon menuIcon = new ImageIcon("img/ui/menu.png");
+			menu = UIFactory.createButton(menuIcon, new ImageIcon("img/ui/menuPressed.png"));
+			menu.setBounds((Window.DIMENSIONS.width - menuIcon.getIconWidth()) / 2, Window.DIMENSIONS.height - 200, menuIcon.getIconWidth(), menuIcon.getIconHeight());
+			menu.addActionListener(this);
+			add(menu);
+			SoundEffect.PICKUP.play(false);
+		}
 	}
 	
 	private void drawGameComplete(Graphics2D g2) {
-		long elapsed = Math.min(1000, System.currentTimeMillis() - fadeTime);
-		
-		float opacity = elapsed / 1000f;
-		
-		AlphaComposite ac = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, opacity);
-		g2.setComposite(ac);
-		
 		g2.setColor(Color.WHITE);
-		g2.fillRect(0, 0, Window.DIMENSIONS.width, Window.DIMENSIONS.height);
+		
+		long elapsed = System.currentTimeMillis() - fadeTime;
+		if (elapsed <= 4000) {
+			int beamAngle = (int) (360 * Math.random());
+			int beamArc = (int) (10 * Math.random()) + 6;
+			int beamOpacity = (int) (255 * Math.random()) + 1;
+			
+			beams.add(new int[] { beamAngle, beamArc, beamOpacity });
+			for (int[] beam : beams) {
+				AlphaComposite ac = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, beam[2] / 255f);
+				g2.setComposite(ac);
+				g2.fillArc(beamSpawnArea.x, beamSpawnArea.y, beamSpawnArea.width, beamSpawnArea.height, beam[0], beam[1]);
+			}
+			if (elapsed >= 2000) {
+				AlphaComposite ac = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (elapsed - 2000) / 2000f);
+				g2.setComposite(ac);
+				g2.fillRect(-10, -10, Window.DIMENSIONS.width + 20, Window.DIMENSIONS.height + 20);
+			}
+		} else {
+			g2.fillRect(-10, -10, Window.DIMENSIONS.width + 20, Window.DIMENSIONS.height + 20);
+			changeScreen(new VictoryScreen(cumulativeTime + (int) ((endTime - startTime) / 100), frame));
+		}
 	}
 
 	@Override
@@ -381,7 +418,7 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 			changeLevel(levelNumber + 1);
 			SoundEffect.CLICK.play(false);
 		} else if (arg0.getSource() == reset) {
-			resetLevel();
+			loseHeart();
 			SoundEffect.CLICK.play(false);
 		} else if (arg0.getSource() == exit) {
 			if (theme.getBackgroundNoise() != null) {
@@ -389,11 +426,17 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 			}
 			changeScreen(last);
 			SoundEffect.CLICK.play(false);
+		} else if (arg0.getSource() == menu) {
+			changeScreen(new MainScreen(frame));
+			SoundEffect.CLICK.play(false);
 		} else if (arg0.getSource() == timer) {
 			if (startTime == 0) {
 				xOffset = (int) Math.signum(xOffset) * Math.max(0, (int) (Window.DIMENSIONS.width * (500.0 - System.currentTimeMillis() + openTime) / 500));
 				if (xOffset == 0) {
 					bindKeys();
+					if (theme.getBackgroundNoise() != null) {
+						theme.getBackgroundNoise().play(true);
+					}
 					if (levelNumber == 1 || levelNumber == 4) {
 						add(helpPanels.get(0));
 					}
@@ -416,25 +459,12 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 				pickUpPowerUp();
 				triggerButtons();
 				if (player.isOutOfBounds(map) && numHearts > 0) {
-					numHearts--;
-					remove(hearts[numHearts]);
-					SoundEffect.DEATH.play(false);
-					if (numHearts == 0) {
-						fadeTime = System.currentTimeMillis();
-						this.removeAll();
-						SoundEffect.MUSIC.stop();
-						if (theme.getBackgroundNoise() != null) {
-							theme.getBackgroundNoise().play(true);
-						}
-						SoundEffect.GAME_OVER.play(false);
-					} else {
-						resetLevel();
-					}
+					loseHeart();
 				}
 				if (player.reachedGoal(map)) {
 					complete = true;
 					unbindKeys();
-					if (levelNumber == 24) {
+					if (!timeTrial && levelNumber == 24) {
 						fadeTime = System.currentTimeMillis();
 						this.removeAll();
 					}
@@ -442,13 +472,23 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 						player.setMovement(Movement.STILL_LEFT);
 					else if (player.getMovement() == Movement.RIGHT)
 						player.setMovement(Movement.STILL_RIGHT);
-					lastLevel.setEnabled(false);
-					nextLevel.setEnabled(false);
+					if (!timeTrial) {
+						lastLevel.setEnabled(false);
+						nextLevel.setEnabled(false);
+					}
 					reset.setEnabled(false);
 				}
 			} else if (player.getMovement() == Movement.STILL && !flashTimer.isRunning() && !changeTimer.isRunning()) {
-				SoundEffect.SUCCESS.play(false);
 				flashTimer.start();
+				
+				SoundEffect.SUCCESS.play(false);
+				if (!timeTrial && levelNumber == 24) {
+					SoundEffect.MUSIC.stop();
+					if (theme.getBackgroundNoise() != null) {
+						theme.getBackgroundNoise().stop();
+					}
+					SoundEffect.VICTORY.play(false);
+				}
 			}
 			repaint();
 		} else if (arg0.getSource() == flashTimer) {
@@ -465,7 +505,7 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 			changeTimer.stop();
 			
 			int newLevelNumber = Integer.parseInt(arg0.getActionCommand());
-			changeScreen(new Level(newLevelNumber, newLevelNumber > levelNumber, frame, last));
+			changeScreen(new Level(newLevelNumber, newLevelNumber > levelNumber, timeTrial, timeTrial ? 0 : cumulativeTime + (int) ((endTime - startTime) / 100), frame, last));
 		}
 	}
 	
@@ -496,6 +536,23 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 			for (int i = 0; i < helpPanels.size(); i++) {
 				remove(helpPanels.get(0));
 			}
+		}
+	}
+	
+	private void loseHeart() {
+		numHearts--;
+		remove(hearts[numHearts]);
+		SoundEffect.DEATH.play(false);
+		if (numHearts == 0) {
+			fadeTime = System.currentTimeMillis();
+			this.removeAll();
+			SoundEffect.MUSIC.stop();
+			if (theme.getBackgroundNoise() != null) {
+				theme.getBackgroundNoise().stop();
+			}
+			SoundEffect.GAME_OVER.play(false);
+		} else {
+			resetLevel();
 		}
 	}
 
@@ -631,13 +688,46 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 		im.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0, true), "right-release");
 		im.put(KeyStroke.getKeyStroke(KeyEvent.VK_D, 0, true), "right-release");
 		im.put(KeyStroke.getKeyStroke(KeyEvent.VK_SHIFT, InputEvent.SHIFT_DOWN_MASK, false), "shift-press");
-		
+	
 		ActionMap am = getActionMap();
 		am.put("left-press", leftDown);
 		am.put("left-release", leftUp);
 		am.put("right-press", rightDown);
 		am.put("right-release", rightUp);
 		am.put("shift-press", shiftDown);
+		for (int i = 0; i <= 9; i++) {
+			im.put(KeyStroke.getKeyStroke(KeyEvent.VK_0 + i, 0, false), i + "-press");
+			am.put(i + "-press", new NumberDownAction(i));
+		}
+		
+		im.put(KeyStroke.getKeyStroke(KeyEvent.VK_G, 0, false), "g-press");
+		am.put("g-press", new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (sekrit.length() > 0) {
+					System.out.println("sekrit: " + sekrit);
+					int newLevel = Integer.parseInt(sekrit);
+					if (newLevel >= 1 && newLevel <= 24) {
+						changeLevel(newLevel);
+					}
+					sekrit = "";
+				}
+			}
+		});
+	}
+	
+	class NumberDownAction extends AbstractAction {
+		
+		private int number;
+		
+		NumberDownAction(int number) {
+			this.number = number;
+		}
+		
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			sekrit += number;
+		}
 	}
 	
 	private void unbindKeys() {

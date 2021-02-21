@@ -1,27 +1,27 @@
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.RenderingHints;
 
 import javax.swing.JLabel;
 
 public class OutlinedLabel extends JLabel {
 
 	private String text;
-	private int width;
+	private Dimension size;
 
 	OutlinedLabel(String text) {
-		this.text = text;
 		this.setOpaque(false);
-		
-		width = calculateWidth();
+		setText(text);
 	}
 
 	public void setText(String text) {
 		this.text = text;
 		
-		int newWidth = calculateWidth();
-		if (width != newWidth) {
-			width = newWidth;
+		int newWidth = (int) (calculateWidth());
+		if (size == null || size.width != newWidth) {
+			size = new Dimension(newWidth, 40);
 		}
 	}
 
@@ -48,6 +48,12 @@ public class OutlinedLabel extends JLabel {
 	}
 	
 	public Dimension getPreferredSize() {
-		return new Dimension(width, 40);
+		return size;
+	}
+	public Dimension getMinimumSize() {
+		return size;
+	}
+	public Dimension getMaximumSize() {
+		return size;
 	}
 }

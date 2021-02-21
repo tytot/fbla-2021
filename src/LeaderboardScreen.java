@@ -4,6 +4,7 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.Image;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -22,15 +23,7 @@ import javax.swing.JScrollPane;
 
 public class LeaderboardScreen extends JPanel implements ActionListener {
 	private JFrame frame;
-	
-	private JButton[] buttons = new JButton[6];
-	private JButton[] allButtons = new JButton[24];
 	private JButton exit;
-	private JButton lastPage, nextPage;
-	private JLabel pageNum;
-	private int page = 1;
-	private JPanel grid;
-	private GridBagConstraints gbc;
 
 	LeaderboardScreen(JFrame frame) {
 		this.frame = frame;
@@ -58,8 +51,11 @@ public class LeaderboardScreen extends JPanel implements ActionListener {
 		JPanel list = new JPanel();
 		list.setLayout(new BoxLayout(list, BoxLayout.Y_AXIS));
 		list.setOpaque(false);
+		
+		// CHANGE
 		for (int i = 0; i < 100; i++) {
-			JPanel entry = initializeEntry(i + 1);
+			JPanel entry = createLeaderboardEntry(i + 1, "Balasubramanian", "00:00.00");
+			entry.setAlignmentX(CENTER_ALIGNMENT);
 			list.add(entry);
 		}
 		
@@ -77,7 +73,7 @@ public class LeaderboardScreen extends JPanel implements ActionListener {
 		add(container);
 	}
 	
-	private JPanel initializeEntry(int rank) {
+	private JPanel createLeaderboardEntry(int rank, String name, String time) {
 		JPanel entry = new JPanel();
 		entry.setLayout(null);
 		entry.setPreferredSize(new Dimension(720, 70));
@@ -93,18 +89,12 @@ public class LeaderboardScreen extends JPanel implements ActionListener {
 		} else if (rank == 3) {
 			entry.add(UIFactory.createLabel(new ImageIcon("img/ui/bronze_medal.png"), 60, 0));
 		}
+		entry.add(UIFactory.createLabel("Balasubramanian", 36, new Rectangle(140, 10, 275, 50)));
 		
-		JLabel name = new JLabel("Balasubramanian");
-		name.setFont(UIFactory.getFont(36));
-		name.setForeground(Color.WHITE);
-		name.setBounds(140, 10, 275, 50);
-		entry.add(name);
+		JLabel timeLabel = UIFactory.createOutlinedLabel("0:00.0");
+		timeLabel.setBounds(600 - timeLabel.getPreferredSize().width, 10, timeLabel.getPreferredSize().width, timeLabel.getPreferredSize().height);
+		entry.add(timeLabel);
 		
-		JLabel time = UIFactory.createOutlinedLabel("0:00.0");
-		time.setBounds(600 - time.getPreferredSize().width, 10, time.getPreferredSize().width, time.getPreferredSize().height);
-		entry.add(time);
-		
-		entry.setAlignmentX(CENTER_ALIGNMENT);
 		return entry;
 	}
 	
@@ -114,39 +104,11 @@ public class LeaderboardScreen extends JPanel implements ActionListener {
 	
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		String cmd = e.getActionCommand();
-		if (cmd.startsWith("Level ")) {
-			frame.setContentPane(new Level(Integer.parseInt(cmd.substring(6)), true, frame, this));
-		} else if (e.getSource() == lastPage) {
-			if (page == 1) {
-				page = 4;
-			} else {
-				page--;
-			}
-			newPage();
-		} else if (e.getSource() == nextPage) {
-			if (page == 4) {
-				page = 1;
-			} else {
-				page++;
-			}
-			newPage();
-		} else if (e.getSource() == exit) {
+		if (e.getSource() == exit) {
 			frame.setContentPane(new MainScreen(frame));
-		}
-		SoundEffect.CLICK.play(false);
-		frame.repaint();
-		frame.revalidate();
-	}
-	
-	private void newPage() {
-		pageNum.setText(page + " / 4");
-		for (int i = 0; i < 6; i++) {
-			grid.remove(buttons[i]);
-			buttons[i] = allButtons[6 * (page - 1) + i];
-			gbc.gridx = i % 3;
-			gbc.gridy = i / 3;
-			grid.add(buttons[i], gbc);
+			SoundEffect.CLICK.play(false);
+			frame.repaint();
+			frame.revalidate();
 		}
 	}
 	
