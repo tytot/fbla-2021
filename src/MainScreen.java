@@ -10,13 +10,13 @@ import javax.swing.*;
 
 public class MainScreen extends JPanel implements ActionListener {
 	private JFrame frame;
-	private JButton play, levels, leaders;
+	private JButton play, levels, leaders, tutorial;
 
 	MainScreen(JFrame frame) {
 		this.frame = frame;
 		setPreferredSize(new Dimension(33 * Block.SIZE, 24 * Block.SIZE));
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-		
+
 		add(Box.createVerticalGlue());
 		JLabel title = new JLabel(new ImageIcon("img/ui/title.png"));
 		title.setAlignmentX(CENTER_ALIGNMENT);
@@ -36,9 +36,14 @@ public class MainScreen extends JPanel implements ActionListener {
 		leaders.setAlignmentX(CENTER_ALIGNMENT);
 		leaders.addActionListener(this);
 		add(leaders);
+		add(Box.createVerticalStrut(Block.SIZE));
+		tutorial = UIFactory.createButton(new ImageIcon("img/ui/instructions.png"), new ImageIcon("img/ui/instructionsPressed.png"));
+		tutorial.setAlignmentX(CENTER_ALIGNMENT);
+		tutorial.addActionListener(this);
+		add(tutorial);
 		add(Box.createVerticalGlue());
 	}
-	
+
 	public void paintComponent(Graphics g) {
 		g.drawImage(new PlainTheme().getBackgroundImage(), 0, 0, null);
 	}
@@ -52,7 +57,10 @@ public class MainScreen extends JPanel implements ActionListener {
 			frame.setContentPane(new LevelScreen(frame));
 		} else if (e.getSource() == leaders) {
 			frame.setContentPane(new LeaderboardScreen(frame));
+		} else if (e.getSource() == tutorial) {
+			frame.setContentPane(new TutorialScreen(frame));
 		}
+
 		SoundEffect.CLICK.play(false);
 		frame.revalidate();
 		frame.repaint();

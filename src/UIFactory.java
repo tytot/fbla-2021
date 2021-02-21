@@ -9,11 +9,7 @@ import java.io.File;
 import java.util.HashMap;
 
 import javax.imageio.ImageIO;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.SwingConstants;
+import javax.swing.*;
 
 public class UIFactory {
 	
@@ -74,6 +70,18 @@ public class UIFactory {
 	public static JLabel createOutlinedLabel(String text) {
 		JLabel label = new OutlinedLabel(text);
 		return label;
+	}
+
+	public static JTextArea createTextArea(String text, int row, int column) {
+		JTextArea textArea = new JTextArea(text, row, column);
+		textArea.setWrapStyleWord(true);
+		textArea.setLineWrap(true);
+		textArea.setOpaque(false);
+		textArea.setEditable(false);
+		textArea.setFocusable(false);
+		textArea.setBackground(UIManager.getColor("Label.background"));
+		textArea.setBorder(UIManager.getBorder("Label.border"));
+		return textArea;
 	}
 	
 	public static JLabel createOutlinedLabel(String text, int x, int y) {

@@ -52,9 +52,20 @@ public class LeaderboardScreen extends JPanel implements ActionListener {
 		list.setLayout(new BoxLayout(list, BoxLayout.Y_AXIS));
 		list.setOpaque(false);
 		
-		// CHANGE
-		for (int i = 0; i < 100; i++) {
-			JPanel entry = createLeaderboardEntry(i + 1, "Balasubramanian", "00:00.00");
+
+		// Hardcode Leaders
+		JPanel juicer = createLeaderboardEntry(1, "Adit", "15:46.67");
+		juicer.setAlignmentX(CENTER_ALIGNMENT);
+		list.add(juicer);
+		JPanel juicer2 = createLeaderboardEntry(2, "Tytot", "18:37.03");
+		juicer2.setAlignmentX(CENTER_ALIGNMENT);
+		list.add(juicer2);
+		JPanel juicer3 = createLeaderboardEntry(3, "Chen", "28:38.04");
+		juicer3.setAlignmentX(CENTER_ALIGNMENT);
+		list.add(juicer3);
+		//Placeholders
+		for (int i = 3; i < 100; i++) {
+			JPanel entry = createLeaderboardEntry(i + 1, "SAMPLE", "00:00.00");
 			entry.setAlignmentX(CENTER_ALIGNMENT);
 			list.add(entry);
 		}
@@ -89,9 +100,9 @@ public class LeaderboardScreen extends JPanel implements ActionListener {
 		} else if (rank == 3) {
 			entry.add(UIFactory.createLabel(new ImageIcon("img/ui/bronze_medal.png"), 60, 0));
 		}
-		entry.add(UIFactory.createLabel("Balasubramanian", 36, new Rectangle(140, 10, 275, 50)));
+		entry.add(UIFactory.createLabel(name, 36, new Rectangle(140, 10, 275, 50)));
 		
-		JLabel timeLabel = UIFactory.createOutlinedLabel("0:00.0");
+		JLabel timeLabel = UIFactory.createOutlinedLabel(time);
 		timeLabel.setBounds(600 - timeLabel.getPreferredSize().width, 10, timeLabel.getPreferredSize().width, timeLabel.getPreferredSize().height);
 		entry.add(timeLabel);
 		
