@@ -1,3 +1,11 @@
+### Post-Processors ###
+res/
+proguard/
+config.pro
+obfuscator*
+process.sh
+*.jar
+
 ### Eclipse ###
 .metadata
 bin/

@@ -1,30 +1,27 @@
 
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.Image;
 import java.awt.Insets;
-import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
-import java.io.IOException;
 
-import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.border.LineBorder;
 
 public class LevelScreen extends JPanel implements ActionListener {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -2278619233103992010L;
+
 	private JFrame frame;
 	
 	private JButton[] buttons = new JButton[6];
@@ -41,7 +38,7 @@ public class LevelScreen extends JPanel implements ActionListener {
 		setPreferredSize(new Dimension(33 * Block.SIZE, 24 * Block.SIZE));
 		setLayout(null);
 		
-		exit = UIFactory.createButton(new ImageIcon("img/ui/exit.png"), new ImageIcon("img/ui/exitPressed.png"), 25, 15);
+		exit = UIFactory.createButton("img/ui/exit.png", "img/ui/exitPressed.png", 25, 15);
 		exit.addActionListener(this);
 		add(exit);
 		
@@ -50,7 +47,7 @@ public class LevelScreen extends JPanel implements ActionListener {
 		container.setLayout(new BoxLayout(container, BoxLayout.Y_AXIS));
 		container.setBounds(0, 0, frame.getWidth(), frame.getHeight());
 		container.add(Box.createVerticalStrut(Block.SIZE * 2));
-		JLabel levelsLabel = new JLabel(new ImageIcon("img/ui/levelsPressed.png"));
+		JLabel levelsLabel = UIFactory.createLabel("img/ui/levelsPressed.png");
 		levelsLabel.setAlignmentX(CENTER_ALIGNMENT);
 		container.add(levelsLabel);
 		grid = new JPanel();
@@ -73,7 +70,7 @@ public class LevelScreen extends JPanel implements ActionListener {
 		container.add(grid);
 		JPanel navigation = new JPanel();
 		navigation.setOpaque(false);
-		lastPage = UIFactory.createButton(new ImageIcon("img/ui/lastLevel.png"), new ImageIcon("img/ui/lastLevelPressed.png"));
+		lastPage = UIFactory.createButton("img/ui/lastLevel.png", "img/ui/lastLevelPressed.png");
 		lastPage.addActionListener(this);
 		navigation.add(lastPage);
 		JPanel chip = new TransparentRoundedPanel(new Color(0, 0, 0, 25));
@@ -83,7 +80,7 @@ public class LevelScreen extends JPanel implements ActionListener {
 		navigation.add(Box.createHorizontalStrut(5));
 		navigation.add(chip);
 		navigation.add(Box.createHorizontalStrut(5));
-		nextPage = UIFactory.createButton(new ImageIcon("img/ui/nextLevel.png"), new ImageIcon("img/ui/nextLevelPressed.png"));
+		nextPage = UIFactory.createButton("img/ui/nextLevel.png", "img/ui/nextLevelPressed.png");
 		nextPage.addActionListener(this);
 		navigation.add(nextPage);
 		navigation.setAlignmentX(CENTER_ALIGNMENT);

@@ -14,6 +14,7 @@ public class Player {
 
 	private ArrayList<PlayerBlock> playerBlocks = new ArrayList<PlayerBlock>();
 	private ArrayList<PlayerBlock> buildBlocks = new ArrayList<PlayerBlock>();
+	@SuppressWarnings("unchecked")
 	private ArrayList<PlayerBlock>[] splitBlocks = new ArrayList[2];
 	private PlayerBlock highlightedBlock = null;
 	private Point[] splitLine = null;
@@ -443,6 +444,7 @@ public class Player {
 			chosenSide = -1;
 	}
 
+	@SuppressWarnings("unchecked")
 	public ArrayList<PlayerBlock> chooseSide(int side) {
 		// returns blocks to be made solid
 		state = NORMAL;

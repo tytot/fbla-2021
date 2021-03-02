@@ -1,4 +1,3 @@
-import java.awt.Image;
 
 public class HighlightedPlayerBlock extends PlayerBlock {
 	

@@ -1,14 +1,6 @@
 
 import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Image;
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
-import java.io.File;
-import java.io.IOException;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
 
 class Window {
@@ -30,11 +22,13 @@ class Window {
 		SoundEffect.MUSIC.play(true);
 	}
 
-	private static void runGUI() {
+	public static void runGUI() {
 		new Window();
 	}
 
 	public static void main(String[] args) {
+		System.setProperty("sun.java2d.uiScale", "1");
+		
 		javax.swing.SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				runGUI();

@@ -6,6 +6,10 @@ import javax.swing.JPanel;
 
 public class TransparentRoundedPanel extends JPanel {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -2147641524455782201L;
 	private Color color;
 
 	TransparentRoundedPanel(Color color) {

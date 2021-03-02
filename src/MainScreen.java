@@ -2,13 +2,14 @@
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
-import java.io.IOException;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
 
 public class MainScreen extends JPanel implements ActionListener {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -5053519158223165280L;
 	private JFrame frame;
 	private JButton play, levels, leaders;
 
@@ -18,21 +19,21 @@ public class MainScreen extends JPanel implements ActionListener {
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		
 		add(Box.createVerticalGlue());
-		JLabel title = new JLabel(new ImageIcon("img/ui/title.png"));
+		JLabel title = UIFactory.createLabel("img/ui/title.png");
 		title.setAlignmentX(CENTER_ALIGNMENT);
 		add(title);
 		add(Box.createVerticalGlue());
-		play = UIFactory.createButton(new ImageIcon("img/ui/play.png"), new ImageIcon("img/ui/playPressed.png"));
+		play = UIFactory.createButton("img/ui/play.png", "img/ui/playPressed.png");
 		play.setAlignmentX(CENTER_ALIGNMENT);
 		play.addActionListener(this);
 		add(play);
 		add(Box.createVerticalStrut(Block.SIZE));
-		levels = UIFactory.createButton(new ImageIcon("img/ui/levels.png"), new ImageIcon("img/ui/levelsPressed.png"));
+		levels = UIFactory.createButton("img/ui/levels.png", "img/ui/levelsPressed.png");
 		levels.setAlignmentX(CENTER_ALIGNMENT);
 		levels.addActionListener(this);
 		add(levels);
 		add(Box.createVerticalStrut(Block.SIZE));
-		leaders = UIFactory.createButton(new ImageIcon("img/ui/leaderboard.png"), new ImageIcon("img/ui/leaderboardPressed.png"));
+		leaders = UIFactory.createButton("img/ui/leaderboard.png", "img/ui/leaderboardPressed.png");
 		leaders.setAlignmentX(CENTER_ALIGNMENT);
 		leaders.addActionListener(this);
 		add(leaders);

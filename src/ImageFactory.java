@@ -2,7 +2,6 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 
@@ -15,7 +14,7 @@ public class ImageFactory {
 	public static Image fetchImage(String path) {
 		if (!CACHE.containsKey(path)) {
 			try {
-				Image image = ImageFactory.scaleToBlock(ImageIO.read(new File(path)));
+				Image image = ImageFactory.scaleToBlock(ImageIO.read(ImageFactory.class.getResource(path)));
 				CACHE.put(path, image);
 				return image;
 			} catch (IOException e) {
@@ -28,7 +27,7 @@ public class ImageFactory {
 	public static Image fetchImageBilinear(String path) {
 		if (!CACHE.containsKey(path)) {
 			try {
-				Image image = ImageFactory.scaleToBlockBilinear(ImageIO.read(new File(path)));
+				Image image = ImageFactory.scaleToBlockBilinear(ImageIO.read(ImageFactory.class.getResource(path)));
 				CACHE.put(path, image);
 				return image;
 			} catch (IOException e) {
@@ -41,7 +40,7 @@ public class ImageFactory {
 	public static Image fetchBackgroundImage(String path) {
 		if (!CACHE.containsKey(path)) {
 			try {
-				Image image = ImageFactory.scaleToWindow(ImageIO.read(new File(path)));
+				Image image = ImageFactory.scaleToWindow(ImageIO.read(ImageFactory.class.getResource(path)));
 				CACHE.put(path, image);
 				return image;
 			} catch (IOException e) {

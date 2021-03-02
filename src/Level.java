@@ -1,24 +1,22 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.font.FontRenderContext;
-import java.awt.font.GlyphVector;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
-import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class Level extends JPanel implements MouseListener, MouseMotionListener, ActionListener {
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -305994739730557741L;
 	private JFrame frame;
 	private JPanel last;
 	private int levelNumber;
@@ -78,7 +76,7 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 		requestFocus();
 		requestFocusInWindow();
 		try {
-			List<String> lines = Files.readAllLines(Paths.get("levels/level" + levelNumber + ".txt"));
+			List<String> lines = new BufferedReader(new InputStreamReader(Level.class.getResourceAsStream("levels/level" + levelNumber + ".txt"))).lines().collect(Collectors.toList());
 			map = new Map(theme, lines);
 			startMap = new Map(map);
 			if (!timeTrial && levelNumber == 24) {
@@ -92,7 +90,7 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 			}
 			player.calculateRelativePositions(player.getBlocks());
 			initializeUI();
-		} catch (IOException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		openTime = System.currentTimeMillis();
@@ -100,24 +98,24 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 	}
 	
 	private void initializeUI() throws IOException {
-		exit = UIFactory.createButton(new ImageIcon("img/ui/exit.png"), new ImageIcon("img/ui/exitPressed.png"), 25, 15);
+		exit = UIFactory.createButton("img/ui/exit.png", "img/ui/exitPressed.png", 25, 15);
 		exit.addActionListener(this);
 		add(exit);
-		lastLevel = UIFactory.createButton(new ImageIcon("img/ui/lastLevel.png"), new ImageIcon("img/ui/lastLevelPressed.png"), 100, 15);
+		lastLevel = UIFactory.createButton("img/ui/lastLevel.png", "img/ui/lastLevelPressed.png", 100, 15);
 		lastLevel.addActionListener(this);
 		if (!timeTrial || levelNumber == 1) {
 			lastLevel.setEnabled(false);
 		}
 		add(lastLevel);
 		add(UIFactory.createLabel("Level " + levelNumber, 28, new Rectangle(155, 20, 190, 49)));
-		add(UIFactory.createLabel(new ImageIcon("img/ui/levelBar.png"), 155, 15));
-		nextLevel = UIFactory.createButton(new ImageIcon("img/ui/nextLevel.png"), new ImageIcon("img/ui/nextLevelPressed.png"), 355, 15);
+		add(UIFactory.createLabel("img/ui/levelBar.png", 155, 15));
+		nextLevel = UIFactory.createButton("img/ui/nextLevel.png", "img/ui/nextLevelPressed.png", 355, 15);
 		if (!timeTrial || levelNumber == 24) {
 			nextLevel.setEnabled(false);
 		}
 		nextLevel.addActionListener(this);
 		add(nextLevel);
-		reset = UIFactory.createButton(new ImageIcon("img/ui/reset.png"), new ImageIcon("img/ui/resetPressed.png"), 425, 15);
+		reset = UIFactory.createButton("img/ui/reset.png", "img/ui/resetPressed.png", 425, 15);
 		reset.addActionListener(this);
 		add(reset);
 		
@@ -126,18 +124,18 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 		timerLabel = UIFactory.createOutlinedLabel("0:00.0", width / 2 - 77, 20);
 		add(timerLabel);
 		
-		add(UIFactory.createLabel(new ImageIcon("img/sprites/powerups/grow.png"), width - 480, 0));
+		add(UIFactory.createLabel("img/sprites/powerups/grow.png", width - 480, 0));
 		growCount = UIFactory.createOutlinedLabel("x0", width - 410, 20);
 		add(growCount);
-		add(UIFactory.createLabel(new ImageIcon("img/sprites/powerups/split.png"), width - 320, 0));
+		add(UIFactory.createLabel("img/sprites/powerups/split.png", width - 320, 0));
 		splitCount = UIFactory.createOutlinedLabel("x0", width - 250, 20);
 		add(splitCount);
-		add(UIFactory.createLabel(new ImageIcon("img/sprites/powerups/merge.png"), width - 160, 0));
+		add(UIFactory.createLabel("img/sprites/powerups/merge.png", width - 160, 0));
 		mergeCount = UIFactory.createOutlinedLabel("x0", width - 90, 20);
 		add(mergeCount);
 		
-		ImageIcon heartIcon = new ImageIcon("img/ui/hud_heartFull.png");
-		ImageIcon emptyHeartIcon = new ImageIcon("img/ui/hud_heartEmpty.png");
+		ImageIcon heartIcon = new ImageIcon(Level.class.getResource("img/ui/hud_heartFull.png"));
+		ImageIcon emptyHeartIcon = new ImageIcon(Level.class.getResource("img/ui/hud_heartEmpty.png"));
 		for (int i = 0; i < 3; i++) {
 			add(UIFactory.createLabel(emptyHeartIcon, (int) (width / 2 + (-1.5 + i) * emptyHeartIcon.getIconWidth()), 70));
 			hearts[i] = UIFactory.createLabel(heartIcon, (int) (width / 2 + (-1.5 + i) * heartIcon.getIconWidth()), 70);
@@ -147,13 +145,13 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 		if (levelNumber == 1) {
 			helpPanels.add(UIFactory.createHelpPanel("Press A or left arrow key to move left. Press D or right arrow key to move right.", 300, 150));
 		} else if (levelNumber == 2) {
-			helpPanels.add(UIFactory.createHelpPanel("Hover your cursor next to your block. Click to grow there.", new ImageIcon("img/sprites/powerups/grow.png"), 900, 150));
+			helpPanels.add(UIFactory.createHelpPanel("Hover your cursor next to your block. Click to grow there.", "img/sprites/powerups/grow.png", 900, 150));
 		} else if (levelNumber == 7) {
-			helpPanels.add(UIFactory.createHelpPanel("Right click to begin to split.", new ImageIcon("img/sprites/powerups/split.png"), 250, 350));
-			helpPanels.add(UIFactory.createHelpPanel("Click the line where you want to split.", new ImageIcon("img/sprites/powerups/split.png"), 250, 350));
-			helpPanels.add(UIFactory.createHelpPanel("Choose a side to keep.", new ImageIcon("img/sprites/powerups/split.png"), 250, 350));
+			helpPanels.add(UIFactory.createHelpPanel("Right click to begin to split.", "img/sprites/powerups/split.png", 250, 350));
+			helpPanels.add(UIFactory.createHelpPanel("Click the line where you want to split.", "img/sprites/powerups/split.png", 250, 350));
+			helpPanels.add(UIFactory.createHelpPanel("Choose a side to keep.", "img/sprites/powerups/split.png", 250, 350));
 		} else if (levelNumber == 15) {
-			helpPanels.add(UIFactory.createHelpPanel("Press SHIFT to merge with adjacent abandoned blocks.", new ImageIcon("img/sprites/powerups/merge.png"), 950, 300));
+			helpPanels.add(UIFactory.createHelpPanel("Press SHIFT to merge with adjacent abandoned blocks.", "img/sprites/powerups/merge.png", 950, 300));
 		} else if (levelNumber == 4) {
 			helpPanels.add(UIFactory.createHelpPanel("To complete a level, all blocks must either be on a button or off the ground.", 100, 600));
 		}
@@ -267,8 +265,11 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 		g2.drawString("Game Over", (Window.DIMENSIONS.width - (int) bounds.getWidth()) / 2, (Window.DIMENSIONS.height - (int) bounds.getHeight()) / 2 + fm.getAscent());
 		
 		if (System.currentTimeMillis() - fadeTime >= 7000 && menu == null) {
-			ImageIcon menuIcon = new ImageIcon("img/ui/menu.png");
-			menu = UIFactory.createButton(menuIcon, new ImageIcon("img/ui/menuPressed.png"));
+//%			ImageIcon menuIcon = new ImageIcon("img/ui/menu.png");
+			ImageIcon menuIcon = new ImageIcon(Level.class.getResource("img/ui/menu.png"));
+//%			ImageIcon menuPressedIcon = new ImageIcon("img/ui/menuPressed.png");
+			ImageIcon menuPressedIcon = new ImageIcon(Level.class.getResource("img/ui/menuPressed.png"));
+			menu = UIFactory.createButton(menuIcon, menuPressedIcon);
 			menu.setBounds((Window.DIMENSIONS.width - menuIcon.getIconWidth()) / 2, Window.DIMENSIONS.height - 200, menuIcon.getIconWidth(), menuIcon.getIconHeight());
 			menu.addActionListener(this);
 			add(menu);
@@ -609,6 +610,7 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 		player.squishBlocks(blocksToSquish);
 	}
 	
+	@SuppressWarnings("serial")
 	private void bindKeys() {
 		Action leftDown = new AbstractAction() {
 			@Override
@@ -707,7 +709,7 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 				if (sekrit.length() > 0) {
 					System.out.println("sekrit: " + sekrit);
 					int newLevel = Integer.parseInt(sekrit);
-					if (newLevel >= 1 && newLevel <= 24) {
+					if ((newLevel >= 1 && newLevel <= 24) || newLevel == 99) {
 						changeLevel(newLevel);
 					}
 					sekrit = "";
@@ -716,6 +718,7 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 		});
 	}
 	
+	@SuppressWarnings("serial")
 	class NumberDownAction extends AbstractAction {
 		
 		private int number;

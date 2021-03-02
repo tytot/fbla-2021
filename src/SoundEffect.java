@@ -1,5 +1,4 @@
 
-import java.io.*;
 import javax.sound.sampled.*;
 
 public enum SoundEffect {
@@ -28,7 +27,7 @@ public enum SoundEffect {
 
 	SoundEffect(String soundFileName) {
 		try {
-			stream = AudioSystem.getAudioInputStream(new File(soundFileName));
+			stream = AudioSystem.getAudioInputStream(SoundEffect.class.getResource(soundFileName));
 			clip = AudioSystem.getClip();
 			clip.open(stream);
 		} catch (Exception e) {

@@ -6,7 +6,6 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.RenderingHints;
-import java.io.File;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
@@ -14,6 +13,10 @@ import javax.swing.JButton;
 
 public class LevelButton extends JButton {
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -4870622466443099904L;
 	private int levelNumber;
 	private Image normal, pressed;
 	private Font font = UIFactory.getFont(72);
@@ -21,8 +24,8 @@ public class LevelButton extends JButton {
 	LevelButton(int levelNumber) {
 		this.levelNumber = levelNumber;
 		try {
-			this.normal = ImageIO.read(new File("img/ui/levelBlank.png"));
-			this.pressed = ImageIO.read(new File("img/ui/levelBlankPressed.png"));
+			this.normal = ImageIO.read(LevelButton.class.getResource("img/ui/levelBlank.png"));
+			this.pressed = ImageIO.read(LevelButton.class.getResource("img/ui/levelBlankPressed.png"));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

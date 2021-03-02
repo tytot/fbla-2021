@@ -1,13 +1,15 @@
 import java.awt.Dimension;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.Image;
-import java.awt.RenderingHints;
 
 import javax.swing.JLabel;
 
 public class OutlinedLabel extends JLabel {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 5758252906777918826L;
 	private String text;
 	private Dimension size;
 

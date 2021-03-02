@@ -2,19 +2,13 @@
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
-import java.awt.GridBagConstraints;
-import java.awt.Image;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
-import java.io.IOException;
 
-import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -22,6 +16,10 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
 public class LeaderboardScreen extends JPanel implements ActionListener {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 861795915282271507L;
 	private JFrame frame;
 	private JButton exit;
 
@@ -30,7 +28,7 @@ public class LeaderboardScreen extends JPanel implements ActionListener {
 		setPreferredSize(new Dimension(33 * Block.SIZE, 24 * Block.SIZE));
 		setLayout(null);
 		
-		exit = UIFactory.createButton(new ImageIcon("img/ui/exit.png"), new ImageIcon("img/ui/exitPressed.png"), 25, 15);
+		exit = UIFactory.createButton("img/ui/exit.png", "img/ui/exitPressed.png", 25, 15);
 		exit.addActionListener(this);
 		add(exit);
 		
@@ -39,11 +37,11 @@ public class LeaderboardScreen extends JPanel implements ActionListener {
 		container.setLayout(new BoxLayout(container, BoxLayout.Y_AXIS));
 		container.setBounds(0, 0, frame.getWidth(), frame.getHeight());
 		container.add(Box.createVerticalStrut(Block.SIZE * 2));
-		JLabel levelsLabel = UIFactory.createLabel(new ImageIcon("img/ui/leaderboardPressed.png"));
+		JLabel levelsLabel = UIFactory.createLabel("img/ui/leaderboardPressed.png");
 		levelsLabel.setAlignmentX(CENTER_ALIGNMENT);
 		container.add(levelsLabel);
 		container.add(Box.createVerticalStrut(Block.SIZE));
-		JLabel leaderboardHeader = UIFactory.createLabel(new ImageIcon("img/ui/leaderboardHeader.png"));
+		JLabel leaderboardHeader = UIFactory.createLabel("img/ui/leaderboardHeader.png");
 		leaderboardHeader.setAlignmentX(CENTER_ALIGNMENT);
 		container.add(leaderboardHeader);
 		container.add(Box.createVerticalStrut(Block.SIZE / 2));
@@ -61,7 +59,7 @@ public class LeaderboardScreen extends JPanel implements ActionListener {
 		
 		JScrollPane scroller = new JScrollPane(list, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		scroller.setBorder(BorderFactory.createLineBorder(new Color(0, 0, 0, 25), 16, true));
-		scroller.getVerticalScrollBar().setUI(new CustomScrollBarUI());
+		scroller.getVerticalScrollBar().setUI(new KenneyScrollBarUI());
 		scroller.getVerticalScrollBar().setBackground(new Color(0, 0, 0, 25));
 		scroller.getVerticalScrollBar().setUnitIncrement(20);
 		scroller.setAlignmentX(CENTER_ALIGNMENT);
@@ -83,11 +81,11 @@ public class LeaderboardScreen extends JPanel implements ActionListener {
 		
 		entry.add(UIFactory.createOutlinedLabel(rank + "", 5, 10));
 		if (rank == 1) {
-			entry.add(UIFactory.createLabel(new ImageIcon("img/ui/gold_medal.png"), 60, 0));
+			entry.add(UIFactory.createLabel("img/ui/gold_medal.png", 60, 0));
 		} else if (rank == 2) {
-			entry.add(UIFactory.createLabel(new ImageIcon("img/ui/silver_medal.png"), 60, 0));
+			entry.add(UIFactory.createLabel("img/ui/silver_medal.png", 60, 0));
 		} else if (rank == 3) {
-			entry.add(UIFactory.createLabel(new ImageIcon("img/ui/bronze_medal.png"), 60, 0));
+			entry.add(UIFactory.createLabel("img/ui/bronze_medal.png", 60, 0));
 		}
 		entry.add(UIFactory.createLabel("Balasubramanian", 36, new Rectangle(140, 10, 275, 50)));
 		
@@ -112,16 +110,16 @@ public class LeaderboardScreen extends JPanel implements ActionListener {
 		}
 	}
 	
-	public static void main(String[] args) {
-		JFrame frame = new JFrame("Leaderboard");
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.setResizable(false);
-		Dimension d = new Dimension(33, 24);
-		frame.setPreferredSize(new Dimension(d.width * Block.SIZE, d.height * Block.SIZE));
-		frame.setMinimumSize(new Dimension(d.width * Block.SIZE, d.height * Block.SIZE));
-		frame.setMaximumSize(new Dimension(d.width * Block.SIZE, d.height * Block.SIZE));
-		frame.setContentPane(new LeaderboardScreen(frame));
-		frame.pack();
-		frame.setVisible(true);
-	}
+//	public static void main(String[] args) {
+//		JFrame frame = new JFrame("Leaderboard");
+//		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+//		frame.setResizable(false);
+//		Dimension d = new Dimension(33, 24);
+//		frame.setPreferredSize(new Dimension(d.width * Block.SIZE, d.height * Block.SIZE));
+//		frame.setMinimumSize(new Dimension(d.width * Block.SIZE, d.height * Block.SIZE));
+//		frame.setMaximumSize(new Dimension(d.width * Block.SIZE, d.height * Block.SIZE));
+//		frame.setContentPane(new LeaderboardScreen(frame));
+//		frame.pack();
+//		frame.setVisible(true);
+//	}
 }

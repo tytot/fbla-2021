@@ -10,18 +10,18 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.plaf.basic.BasicScrollBarUI;
 
-public class CustomScrollBarUI extends BasicScrollBarUI {
+public class KenneyScrollBarUI extends BasicScrollBarUI {
 	
 	@Override
 	protected JButton createIncreaseButton(int orientation) {
-		ImageIcon icon = new ImageIcon("img/ui/blue_sliderDown.png");
+		ImageIcon icon = new ImageIcon(KenneyScrollBarUI.class.getResource("img/ui/blue_sliderDown.png"));
 		JButton button = UIFactory.createButton(icon, icon);
 		return button;
 	}
 	
 	@Override
 	protected JButton createDecreaseButton(int orientation) {
-		ImageIcon icon = new ImageIcon("img/ui/blue_sliderUp.png");
+		ImageIcon icon = new ImageIcon(KenneyScrollBarUI.class.getResource("img/ui/blue_sliderUp.png"));
 		JButton button = UIFactory.createButton(icon, icon);
 		return button;
 	}

@@ -1,12 +1,10 @@
 import java.awt.AlphaComposite;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.Insets;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -24,6 +22,11 @@ import javax.swing.Timer;
 
 public class VictoryScreen extends JPanel implements ActionListener {
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -763037788114609809L;
+
 	private JFrame frame;
 	
 	private Timer animTimer = new Timer(25, this);
@@ -34,6 +37,7 @@ public class VictoryScreen extends JPanel implements ActionListener {
 	private int startMarginTop;
 	private int time;
 	
+	@SuppressWarnings("unused")
 	private JButton menu;
 	private JButton leaders;
 	
@@ -44,7 +48,7 @@ public class VictoryScreen extends JPanel implements ActionListener {
 		
 		this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		
-		ImageIcon victoryIcon = new ImageIcon("img/ui/victory.png");
+		ImageIcon victoryIcon = new ImageIcon(VictoryScreen.class.getResource("img/ui/victory.png"));
 		startMarginTop = (Window.DIMENSIONS.height - victoryIcon.getIconHeight()) / 2;
 		this.add(Box.createVerticalStrut(startMarginTop));
 		JLabel victoryLabel = UIFactory.createLabel(victoryIcon);
@@ -61,10 +65,9 @@ public class VictoryScreen extends JPanel implements ActionListener {
 		
 		this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		
-		ImageIcon victoryIcon = new ImageIcon("img/ui/victory.png");
 		startMarginTop = Block.SIZE;
 		this.add(Box.createVerticalStrut(startMarginTop));
-		JLabel victoryLabel = UIFactory.createLabel(victoryIcon);
+		JLabel victoryLabel = UIFactory.createLabel("img/ui/victory.png");
 		victoryLabel.setAlignmentX(CENTER_ALIGNMENT);
 		this.add(victoryLabel);
 		
@@ -99,7 +102,7 @@ public class VictoryScreen extends JPanel implements ActionListener {
 		congratsLabel.setAlignmentX(CENTER_ALIGNMENT);
 		leaderboard.add(congratsLabel);
 		leaderboard.add(Box.createVerticalStrut(Block.SIZE / 2));
-		JLabel leaderboardHeader = UIFactory.createLabel(new ImageIcon("img/ui/leaderboardHeader.png"));
+		JLabel leaderboardHeader = UIFactory.createLabel("img/ui/leaderboardHeader.png");
 		leaderboardHeader.setAlignmentX(CENTER_ALIGNMENT);
 		leaderboard.add(leaderboardHeader);
 		leaderboard.add(Box.createVerticalStrut(Block.SIZE / 4));
@@ -114,11 +117,11 @@ public class VictoryScreen extends JPanel implements ActionListener {
 		int rank = 10;
 		entry.add(UIFactory.createOutlinedLabel(rank + "", 5, 10));
 		if (rank == 1) {
-			entry.add(UIFactory.createLabel(new ImageIcon("img/ui/gold_medal.png"), 60, 0));
+			entry.add(UIFactory.createLabel("img/ui/gold_medal.png", 60, 0));
 		} else if (rank == 2) {
-			entry.add(UIFactory.createLabel(new ImageIcon("img/ui/silver_medal.png"), 60, 0));
+			entry.add(UIFactory.createLabel("img/ui/silver_medal.png", 60, 0));
 		} else if (rank == 3) {
-			entry.add(UIFactory.createLabel(new ImageIcon("img/ui/bronze_medal.png"), 60, 0));
+			entry.add(UIFactory.createLabel("img/ui/bronze_medal.png", 60, 0));
 		}
 		JTextField nameField = new JTextField("Player");
 		nameField.setBounds(new Rectangle(140, 5, 275, 50));
@@ -134,7 +137,7 @@ public class VictoryScreen extends JPanel implements ActionListener {
 		this.add(leaderboard);
 		
 		this.add(Box.createVerticalGlue());
-		leaders = UIFactory.createButton(new ImageIcon("img/ui/leaderboard.png"), new ImageIcon("img/ui/leaderboardPressed.png"));
+		leaders = UIFactory.createButton("img/ui/leaderboard.png", "img/ui/leaderboardPressed.png");
 		leaders.setAlignmentX(CENTER_ALIGNMENT);
 		leaders.addActionListener(this);
 		this.add(leaders);
@@ -181,16 +184,16 @@ public class VictoryScreen extends JPanel implements ActionListener {
 		}
 	}
 	
-	public static void main(String[] args) {
-		JFrame frame = new JFrame("Victory");
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.setResizable(false);
-		Dimension d = new Dimension(33, 24);
-		frame.setPreferredSize(new Dimension(d.width * Block.SIZE, d.height * Block.SIZE));
-		frame.setMinimumSize(new Dimension(d.width * Block.SIZE, d.height * Block.SIZE));
-		frame.setMaximumSize(new Dimension(d.width * Block.SIZE, d.height * Block.SIZE));
-		frame.setContentPane(new VictoryScreen(10000, frame));
-		frame.pack();
-		frame.setVisible(true);
-	}
+//	public static void main(String[] args) {
+//		JFrame frame = new JFrame("Victory");
+//		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+//		frame.setResizable(false);
+//		Dimension d = new Dimension(33, 24);
+//		frame.setPreferredSize(new Dimension(d.width * Block.SIZE, d.height * Block.SIZE));
+//		frame.setMinimumSize(new Dimension(d.width * Block.SIZE, d.height * Block.SIZE));
+//		frame.setMaximumSize(new Dimension(d.width * Block.SIZE, d.height * Block.SIZE));
+//		frame.setContentPane(new VictoryScreen(10000, frame));
+//		frame.pack();
+//		frame.setVisible(true);
+//	}
 }

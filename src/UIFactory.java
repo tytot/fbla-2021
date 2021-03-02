@@ -1,11 +1,8 @@
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.Graphics;
 import java.awt.GraphicsEnvironment;
 import java.awt.Image;
 import java.awt.Rectangle;
-import java.io.File;
 import java.util.HashMap;
 
 import javax.imageio.ImageIO;
@@ -26,15 +23,15 @@ public class UIFactory {
 	
 	static {
 		try {
-			font = Font.createFont(Font.TRUETYPE_FONT, new File(FONT_PATH));
+			font = Font.createFont(Font.TRUETYPE_FONT, UIFactory.class.getResourceAsStream(FONT_PATH));
 			GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(font);
 			
 			for (int i = 0; i < 10; i++) {
-				OUTLINED_MAP.put(i + "", ImageIO.read(new File("img/ui/hud_" + i + ".png")));
+				OUTLINED_MAP.put(i + "", ImageIO.read(UIFactory.class.getResource("img/ui/hud_" + i + ".png")));
 			}
-			OUTLINED_MAP.put(":", ImageIO.read(new File("img/ui/hud_colon.png")));
-			OUTLINED_MAP.put(".", ImageIO.read(new File("img/ui/hud_dot.png")));
-			OUTLINED_MAP.put("x", ImageIO.read(new File("img/ui/hud_x.png")));
+			OUTLINED_MAP.put(":", ImageIO.read(UIFactory.class.getResource("img/ui/hud_colon.png")));
+			OUTLINED_MAP.put(".", ImageIO.read(UIFactory.class.getResource("img/ui/hud_dot.png")));
+			OUTLINED_MAP.put("x", ImageIO.read(UIFactory.class.getResource("img/ui/hud_x.png")));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -71,6 +68,17 @@ public class UIFactory {
 		return label;
 	}
 	
+	public static JLabel createLabel(String iconPath) {
+		ImageIcon icon = new ImageIcon(UIFactory.class.getResource(iconPath));
+		JLabel label = new JLabel(icon);
+		return label;
+	}
+	
+	public static JLabel createLabel(String iconPath, int x, int y) {
+		ImageIcon icon = new ImageIcon(UIFactory.class.getResource(iconPath));
+		return createLabel(icon, x, y);
+	}
+	
 	public static JLabel createOutlinedLabel(String text) {
 		JLabel label = new OutlinedLabel(text);
 		return label;
@@ -98,6 +106,18 @@ public class UIFactory {
 		return b;
 	}
 	
+	public static JButton createButton(String iconPath, String pressedIconPath) {
+		ImageIcon icon = new ImageIcon(UIFactory.class.getResource(iconPath));
+		ImageIcon pressedIcon = new ImageIcon(UIFactory.class.getResource(pressedIconPath));
+		return createButton(icon, pressedIcon);
+	}
+	
+	public static JButton createButton(String iconPath, String pressedIconPath, int x, int y) {
+		ImageIcon icon = new ImageIcon(UIFactory.class.getResource(iconPath));
+		ImageIcon pressedIcon = new ImageIcon(UIFactory.class.getResource(pressedIconPath));
+		return createButton(icon, pressedIcon, x, y);
+	}
+	
 	public static JPanel createHelpPanel(String text, int x, int y) {
 		JPanel panel = new JPanel();
 		panel.setOpaque(false);
@@ -106,7 +126,7 @@ public class UIFactory {
 		JLabel helpText = UIFactory.createLabel("<html>" + text + "</html>", 20);
 		helpText.setBounds(20, 20, 260, 110);
 		panel.add(helpText);
-		JLabel helpBG = new JLabel(new ImageIcon("img/ui/help.png"));
+		JLabel helpBG = new JLabel(new ImageIcon(UIFactory.class.getResource("img/ui/help.png")));
 		helpBG.setBounds(0, 0, 300, 150);
 		panel.add(helpBG);
 		return panel;
@@ -125,9 +145,14 @@ public class UIFactory {
 		JLabel helpText = UIFactory.createLabel("<html>" + text + "</html>", 20);
 		helpText.setBounds(60, 20, 220, 110);
 		panel.add(helpText);
-		JLabel helpBG = new JLabel(new ImageIcon("img/ui/help.png"));
+		JLabel helpBG = new JLabel(new ImageIcon(UIFactory.class.getResource("img/ui/help.png")));
 		helpBG.setBounds(0, 0, 300, 150);
 		panel.add(helpBG);
 		return panel;
+	}
+	
+	public static JPanel createHelpPanel(String text, String iconPath, int x, int y) {
+		ImageIcon icon = new ImageIcon(UIFactory.class.getResource(iconPath));
+		return createHelpPanel(text, icon, x, y);
 	}
 }
