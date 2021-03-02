@@ -18,6 +18,7 @@ class Window {
 		frame.setContentPane(new MainScreen(frame));
 		frame.pack();
 		frame.setVisible(true);
+		System.out.println(DIMENSIONS.getHeight() + ", " + DIMENSIONS.getWidth());
 		
 		SoundEffect.MUSIC.play(true);
 	}
