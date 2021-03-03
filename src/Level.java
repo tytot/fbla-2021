@@ -50,7 +50,7 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 	private JLabel[] hearts = new JLabel[3];
 	private List<JPanel> helpPanels = new ArrayList<JPanel>();
 	
-	private String sekrit = "";
+//	private String sekrit = "";
 	
 	Level(int levelNumber, boolean enterRight, boolean timeTrial, int cumulativeTime, JFrame frame, JPanel last) {
 		this.frame = frame;
@@ -697,41 +697,42 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 		am.put("right-press", rightDown);
 		am.put("right-release", rightUp);
 		am.put("shift-press", shiftDown);
-		for (int i = 0; i <= 9; i++) {
-			im.put(KeyStroke.getKeyStroke(KeyEvent.VK_0 + i, 0, false), i + "-press");
-			am.put(i + "-press", new NumberDownAction(i));
-		}
 		
-		im.put(KeyStroke.getKeyStroke(KeyEvent.VK_G, 0, false), "g-press");
-		am.put("g-press", new AbstractAction() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (sekrit.length() > 0) {
-					System.out.println("sekrit: " + sekrit);
-					int newLevel = Integer.parseInt(sekrit);
-					if ((newLevel >= 1 && newLevel <= 24) || newLevel == 99) {
-						changeLevel(newLevel);
-					}
-					sekrit = "";
-				}
-			}
-		});
+//		for (int i = 0; i <= 9; i++) {
+//			im.put(KeyStroke.getKeyStroke(KeyEvent.VK_0 + i, 0, false), i + "-press");
+//			am.put(i + "-press", new NumberDownAction(i));
+//		}
+//		
+//		im.put(KeyStroke.getKeyStroke(KeyEvent.VK_G, 0, false), "g-press");
+//		am.put("g-press", new AbstractAction() {
+//			@Override
+//			public void actionPerformed(ActionEvent e) {
+//				if (sekrit.length() > 0) {
+//					System.out.println("sekrit: " + sekrit);
+//					int newLevel = Integer.parseInt(sekrit);
+//					if ((newLevel >= 1 && newLevel <= 24) || newLevel == 99) {
+//						changeLevel(newLevel);
+//					}
+//					sekrit = "";
+//				}
+//			}
+//		});
 	}
-	
-	@SuppressWarnings("serial")
-	class NumberDownAction extends AbstractAction {
-		
-		private int number;
-		
-		NumberDownAction(int number) {
-			this.number = number;
-		}
-		
-		@Override
-		public void actionPerformed(ActionEvent e) {
-			sekrit += number;
-		}
-	}
+//	
+//	@SuppressWarnings("serial")
+//	class NumberDownAction extends AbstractAction {
+//		
+//		private int number;
+//		
+//		NumberDownAction(int number) {
+//			this.number = number;
+//		}
+//		
+//		@Override
+//		public void actionPerformed(ActionEvent e) {
+//			sekrit += number;
+//		}
+//	}
 	
 	private void unbindKeys() {
 		ActionMap am = getActionMap();

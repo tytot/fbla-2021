@@ -38,7 +38,7 @@ public class MainScreen extends JPanel implements ActionListener {
 		leaders.addActionListener(this);
 		add(leaders);
 		add(Box.createVerticalStrut(Block.SIZE));
-		tutorial = UIFactory.createButton(new ImageIcon("img/ui/instructions.png"), new ImageIcon("img/ui/instructionsPressed.png"));
+		tutorial = UIFactory.createButton("img/ui/instructions.png", "img/ui/instructionsPressed.png");
 		tutorial.setAlignmentX(CENTER_ALIGNMENT);
 		tutorial.addActionListener(this);
 		add(tutorial);

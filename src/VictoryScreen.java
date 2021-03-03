@@ -20,6 +20,9 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.Timer;
 
+import com.eclipsesource.json.Json;
+import com.eclipsesource.json.JsonArray;
+
 public class VictoryScreen extends JPanel implements ActionListener {
 	
 	/**
@@ -35,16 +38,18 @@ public class VictoryScreen extends JPanel implements ActionListener {
 	private Theme theme;
 	
 	private int startMarginTop;
-	private int time;
+	private int rank = -1;
+	private int timeDecis;
 	
+	private JTextField nameField;
 	@SuppressWarnings("unused")
 	private JButton menu;
 	private JButton leaders;
 	
-	VictoryScreen(int time, JFrame frame) {
+	VictoryScreen(int timeDecis, JFrame frame) {
 		this.frame = frame;
 		this.theme = new PlainTheme();
-		this.time = time;
+		this.timeDecis = timeDecis;
 		
 		this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		
@@ -57,11 +62,31 @@ public class VictoryScreen extends JPanel implements ActionListener {
 		
 		openTime = System.currentTimeMillis();
 		animTimer.start();
+		
+		LeaderboardFetcher fetcher = new LeaderboardFetcher();
+		fetcher.execute();
+		try {
+			JsonArray array = Json.parse(fetcher.get()).asArray();
+			int numEntries = array.size();
+			for (int i = 0; i < numEntries; i++) {
+				if (timeDecis < array.get(i).asObject().getInt("time", 59999)) {
+					rank = i + 1;
+					break;
+				}
+			}
+			if (rank == -1 && numEntries < 100) {
+				rank = numEntries + 1;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
-	VictoryScreen() {
+	VictoryScreen(JFrame frame) {
+		this.frame = frame;
 		this.theme = new PlainTheme();
-		this.time = 0;
+		this.rank = 1;
+		this.timeDecis = 0;
 		
 		this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		
@@ -75,8 +100,6 @@ public class VictoryScreen extends JPanel implements ActionListener {
 	}
 	
 	public void addDetails() {
-		this.add(Box.createVerticalStrut(Block.SIZE / 2));
-		
 		JPanel details = new TransparentRoundedPanel(new Color(0, 0, 0, 25));
 		details.setAlignmentX(CENTER_ALIGNMENT);
 		details.setPreferredSize(new Dimension(480, 80));
@@ -86,68 +109,81 @@ public class VictoryScreen extends JPanel implements ActionListener {
 		JLabel inLabel = UIFactory.createLabel("Your Time:", 36);
 		inLabel.setBorder(BorderFactory.createEmptyBorder(5, 0, 0, 5));
 		details.add(inLabel, gbc);
-		int minutes = time / 600, seconds = (time % 600) / 10, decis = (time % 600) % 10;
-		String timeString = minutes + ":" + String.format("%02d", seconds) + "." + decis;
-		JLabel timeLabel = UIFactory.createOutlinedLabel(timeString);
+		
+		int minutes = timeDecis / 600, seconds = (timeDecis % 600) / 10, decis = (timeDecis % 600) % 10;
+		String time = minutes + ":" + String.format("%02d", seconds) + "." + decis;
+		JLabel timeLabel = UIFactory.createOutlinedLabel(time);
+		
 		details.add(timeLabel, gbc);
 		this.add(details);
 		this.add(Box.createVerticalStrut(Block.SIZE));
 		
-		JPanel leaderboard = new TransparentRoundedPanel(new Color(0, 0, 0, 25));
-		leaderboard.setMaximumSize(new Dimension(800, 270));
-		leaderboard.add(Box.createVerticalStrut(Block.SIZE));
-		leaderboard.setAlignmentX(CENTER_ALIGNMENT);
-		leaderboard.setLayout(new BoxLayout(leaderboard, BoxLayout.Y_AXIS));
-		JLabel congratsLabel = UIFactory.createLabel("You made the leaderboard!", 32);
-		congratsLabel.setAlignmentX(CENTER_ALIGNMENT);
-		leaderboard.add(congratsLabel);
-		leaderboard.add(Box.createVerticalStrut(Block.SIZE / 2));
-		JLabel leaderboardHeader = UIFactory.createLabel("img/ui/leaderboardHeader.png");
-		leaderboardHeader.setAlignmentX(CENTER_ALIGNMENT);
-		leaderboard.add(leaderboardHeader);
-		leaderboard.add(Box.createVerticalStrut(Block.SIZE / 4));
-		
-		JPanel entry = new JPanel();
-		entry.setLayout(null);
-		entry.setPreferredSize(new Dimension(720, 70));
-		entry.setMinimumSize(new Dimension(720, 70));
-		entry.setMaximumSize(new Dimension(720, 70));
-		entry.setOpaque(false);
-		
-		int rank = 10;
-		entry.add(UIFactory.createOutlinedLabel(rank + "", 5, 10));
-		if (rank == 1) {
-			entry.add(UIFactory.createLabel("img/ui/gold_medal.png", 60, 0));
-		} else if (rank == 2) {
-			entry.add(UIFactory.createLabel("img/ui/silver_medal.png", 60, 0));
-		} else if (rank == 3) {
-			entry.add(UIFactory.createLabel("img/ui/bronze_medal.png", 60, 0));
+		if (rank != -1) {
+			JPanel leaderboard = new TransparentRoundedPanel(new Color(0, 0, 0, 25));
+			leaderboard.setMaximumSize(new Dimension(810, 270));
+			leaderboard.add(Box.createVerticalStrut(Block.SIZE));
+			leaderboard.setAlignmentX(CENTER_ALIGNMENT);
+			leaderboard.setLayout(new BoxLayout(leaderboard, BoxLayout.Y_AXIS));
+			JLabel congratsLabel = UIFactory.createLabel("You made the leaderboard!", 32);
+			congratsLabel.setAlignmentX(CENTER_ALIGNMENT);
+			leaderboard.add(congratsLabel);
+			leaderboard.add(Box.createVerticalStrut(Block.SIZE / 2));
+			JLabel leaderboardHeader = UIFactory.createLabel("img/ui/leaderboardHeader.png");
+			leaderboardHeader.setAlignmentX(CENTER_ALIGNMENT);
+			leaderboard.add(leaderboardHeader);
+			leaderboard.add(Box.createVerticalStrut(Block.SIZE / 4));
+			
+			JPanel entry = new JPanel();
+			entry.setLayout(null);
+			entry.setPreferredSize(new Dimension(720, 70));
+			entry.setMinimumSize(new Dimension(720, 70));
+			entry.setMaximumSize(new Dimension(720, 70));
+			entry.setOpaque(false);
+			entry.setAlignmentX(CENTER_ALIGNMENT);
+			
+			entry.add(UIFactory.createOutlinedLabel(rank + "", 15, 10));
+			if (rank == 1) {
+				entry.add(UIFactory.createLabel("img/ui/gold_medal.png", 70, 0));
+			} else if (rank == 2) {
+				entry.add(UIFactory.createLabel("img/ui/silver_medal.png", 70, 0));
+			} else if (rank == 3) {
+				entry.add(UIFactory.createLabel("img/ui/bronze_medal.png", 70, 0));
+			}
+			nameField = new JTextField("Player");
+			nameField.setBounds(new Rectangle(150, 5, 250, 50));
+			nameField.setFont(UIFactory.getFont(32));
+			nameField.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Color.GRAY, 3), BorderFactory.createEmptyBorder(5, 5, 0, 5)));
+			nameField.setForeground(Color.GRAY);
+			nameField.setCaretColor(Color.GRAY);
+			entry.add(nameField);
+			JLabel timeLabel2 = UIFactory.createOutlinedLabel(time);
+			timeLabel2.setBounds(610 - timeLabel2.getPreferredSize().width, 10, timeLabel2.getPreferredSize().width, timeLabel2.getPreferredSize().height);
+			entry.add(timeLabel2);
+			leaderboard.add(entry);
+			this.add(leaderboard);
+			
+			this.add(Box.createVerticalGlue());
+			leaders = UIFactory.createButton("img/ui/leaderboard.png", "img/ui/leaderboardPressed.png");
+			leaders.setAlignmentX(CENTER_ALIGNMENT);
+			leaders.addActionListener(this);
+			this.add(leaders);
+			
+			this.add(Box.createVerticalStrut(Block.SIZE / 2));
+			
+			menu = UIFactory.createButton(new ImageIcon("img/ui/menu.png"), new ImageIcon("img/ui/menuPressed.png"));
+			menu.setAlignmentX(CENTER_ALIGNMENT);
+			menu.addActionListener(this);
+			this.add(menu);
+		} else {
+			menu = UIFactory.createButton(new ImageIcon("img/ui/menu.png"), new ImageIcon("img/ui/menuPressed.png"));
+			menu.setAlignmentX(CENTER_ALIGNMENT);
+			menu.addActionListener(this);
+			this.add(menu);
 		}
-		JTextField nameField = new JTextField("Player");
-		nameField.setBounds(new Rectangle(140, 5, 275, 50));
-		nameField.setFont(UIFactory.getFont(32));
-		nameField.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Color.GRAY, 3), BorderFactory.createEmptyBorder(5, 5, 0, 5)));
-		nameField.setForeground(Color.GRAY);
-		nameField.setCaretColor(Color.GRAY);
-		entry.add(nameField);
-		JLabel timeLabel2 = UIFactory.createOutlinedLabel(timeString);
-		timeLabel2.setBounds(600 - timeLabel2.getPreferredSize().width, 10, timeLabel2.getPreferredSize().width, timeLabel2.getPreferredSize().height);
-		entry.add(timeLabel2);
-		leaderboard.add(entry);
-		this.add(leaderboard);
-		
-		this.add(Box.createVerticalGlue());
-		leaders = UIFactory.createButton("img/ui/leaderboard.png", "img/ui/leaderboardPressed.png");
-		leaders.setAlignmentX(CENTER_ALIGNMENT);
-		leaders.addActionListener(this);
-		this.add(leaders);
-//		menu = UIFactory.createButton(new ImageIcon("img/ui/menu.png"), new ImageIcon("img/ui/menuPressed.png"));
-//		menu.setAlignmentX(CENTER_ALIGNMENT);
-//		menu.addActionListener(this);
-//		this.add(menu);
 		this.add(Box.createVerticalGlue());
 		
 		this.revalidate();
+		this.repaint();
 	}
 	
 	public void paintComponent(Graphics g) {
@@ -181,10 +217,31 @@ public class VictoryScreen extends JPanel implements ActionListener {
 			SoundEffect.CLICK.play(false);
 			frame.repaint();
 			frame.revalidate();
+			postToLeaderboard();
+		} else if (arg0.getSource() == menu) {
+			frame.setContentPane(new MainScreen(frame));
+			SoundEffect.CLICK.play(false);
+			frame.repaint();
+			frame.revalidate();
+			postToLeaderboard();
+		}
+	}
+	
+	public void postToLeaderboard() {
+		if (rank != -1) {
+			System.out.println("Posting to leaderboard...");
+			LeaderboardPoster poster = new LeaderboardPoster(nameField.getText(), timeDecis);
+			poster.execute();
+			try {
+				System.out.println(poster.get());
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 	}
 	
 //	public static void main(String[] args) {
+//		System.setProperty("sun.java2d.uiScale", "1");
 //		JFrame frame = new JFrame("Victory");
 //		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 //		frame.setResizable(false);
@@ -192,7 +249,7 @@ public class VictoryScreen extends JPanel implements ActionListener {
 //		frame.setPreferredSize(new Dimension(d.width * Block.SIZE, d.height * Block.SIZE));
 //		frame.setMinimumSize(new Dimension(d.width * Block.SIZE, d.height * Block.SIZE));
 //		frame.setMaximumSize(new Dimension(d.width * Block.SIZE, d.height * Block.SIZE));
-//		frame.setContentPane(new VictoryScreen(10000, frame));
+//		frame.setContentPane(new VictoryScreen(43434, frame));
 //		frame.pack();
 //		frame.setVisible(true);
 //	}

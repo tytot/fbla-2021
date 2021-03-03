@@ -1,5 +1,7 @@
 
 import java.awt.Dimension;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 import javax.swing.*;
 
@@ -18,7 +20,17 @@ class Window {
 		frame.setContentPane(new MainScreen(frame));
 		frame.pack();
 		frame.setVisible(true);
-		System.out.println(DIMENSIONS.getHeight() + ", " + DIMENSIONS.getWidth());
+		
+		frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+		frame.addWindowListener(new WindowAdapter() {
+		    @Override
+		    public void windowClosing(WindowEvent event) {
+		    	if (frame.getContentPane() instanceof VictoryScreen) {
+					((VictoryScreen) frame.getContentPane()).postToLeaderboard();
+		    	}
+				System.exit(0);
+		    }
+		});
 		
 		SoundEffect.MUSIC.play(true);
 	}

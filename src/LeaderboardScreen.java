@@ -9,11 +9,17 @@ import java.awt.event.ActionListener;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.SwingConstants;
+
+import com.eclipsesource.json.Json;
+import com.eclipsesource.json.JsonArray;
+import com.eclipsesource.json.JsonObject;
 
 public class LeaderboardScreen extends JPanel implements ActionListener {
 	/**
@@ -32,6 +38,14 @@ public class LeaderboardScreen extends JPanel implements ActionListener {
 		exit.addActionListener(this);
 		add(exit);
 		
+		ImageIcon loadingIcon = new ImageIcon(LeaderboardScreen.class.getResource("img/ui/loading.gif"));
+		JLabel loading = UIFactory.createLabel(loadingIcon, (Window.DIMENSIONS.width - loadingIcon.getIconWidth()) / 2, (Window.DIMENSIONS.height - loadingIcon.getIconHeight()) / 2);
+		add(loading);
+		
+		LeaderboardFetcher fetcher = new LeaderboardFetcher();
+		fetcher.execute();
+		
+		remove(loading);
 		JPanel container = new JPanel();
 		container.setOpaque(false);
 		container.setLayout(new BoxLayout(container, BoxLayout.Y_AXIS));
@@ -49,25 +63,32 @@ public class LeaderboardScreen extends JPanel implements ActionListener {
 		JPanel list = new JPanel();
 		list.setLayout(new BoxLayout(list, BoxLayout.Y_AXIS));
 		list.setOpaque(false);
-		
-
-		// Hardcode Leaders
-		JPanel juicer = createLeaderboardEntry(1, "Adit", "15:46.67");
-		juicer.setAlignmentX(CENTER_ALIGNMENT);
-		list.add(juicer);
-		JPanel juicer2 = createLeaderboardEntry(2, "Tytot", "18:37.03");
-		juicer2.setAlignmentX(CENTER_ALIGNMENT);
-		list.add(juicer2);
-		JPanel juicer3 = createLeaderboardEntry(3, "Chen", "28:38.04");
-		juicer3.setAlignmentX(CENTER_ALIGNMENT);
-		list.add(juicer3);
-		//Placeholders
-		for (int i = 3; i < 100; i++) {
-			JPanel entry = createLeaderboardEntry(i + 1, "SAMPLE", "00:00.00");
-			entry.setAlignmentX(CENTER_ALIGNMENT);
-			list.add(entry);
+		try {
+			JsonArray array = Json.parse(fetcher.get()).asArray();
+			int numEntries = array.size();
+			if (numEntries == 0) {
+				JPanel empty = new JPanel();
+				empty.setBackground(new Color(0, 0, 0, 25));
+				JLabel nothing = UIFactory.createLabel("Nothing here yet...", 28);
+				empty.add(nothing);
+				empty.setAlignmentX(CENTER_ALIGNMENT);
+				list.add(empty);
+			} else {
+				for (int i = 0; i < numEntries; i++) {
+					JsonObject obj = array.get(i).asObject();
+					String name = obj.getString("name", "Player");
+					int timeInt = obj.getInt("time", 59999);
+					int minutes = timeInt / 600, seconds = (timeInt % 600) / 10, decis = (timeInt % 600) % 10;
+					String time = minutes + ":" + String.format("%02d", seconds) + "." + decis;
+					
+					JPanel entry = createLeaderboardEntry(i + 1, name, time);
+					entry.setAlignmentX(CENTER_ALIGNMENT);
+					list.add(entry);
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
-		
 		JScrollPane scroller = new JScrollPane(list, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		scroller.setBorder(BorderFactory.createLineBorder(new Color(0, 0, 0, 25), 16, true));
 		scroller.getVerticalScrollBar().setUI(new KenneyScrollBarUI());
@@ -80,6 +101,9 @@ public class LeaderboardScreen extends JPanel implements ActionListener {
 		container.add(scroller);
 		container.add(Box.createVerticalStrut(Block.SIZE * 2));
 		add(container);
+		
+		revalidate();
+		repaint();
 	}
 	
 	private JPanel createLeaderboardEntry(int rank, String name, String time) {
@@ -98,7 +122,9 @@ public class LeaderboardScreen extends JPanel implements ActionListener {
 		} else if (rank == 3) {
 			entry.add(UIFactory.createLabel("img/ui/bronze_medal.png", 60, 0));
 		}
-		entry.add(UIFactory.createLabel(name, 36, new Rectangle(140, 10, 275, 50)));
+		JLabel nameLabel = UIFactory.createLabel(name, 36, new Rectangle(140, 10, 275, 50));
+		nameLabel.setHorizontalAlignment(SwingConstants.LEFT);
+		entry.add(nameLabel);
 		
 		JLabel timeLabel = UIFactory.createOutlinedLabel(time);
 		timeLabel.setBounds(600 - timeLabel.getPreferredSize().width, 10, timeLabel.getPreferredSize().width, timeLabel.getPreferredSize().height);

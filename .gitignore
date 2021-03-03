@@ -1,8 +1,11 @@
 ### Post-Processors ###
+ConnectionDetails.java
+lib/
 res/
 proguard/
 config.pro
 obfuscator*
+mapping.txt
 process.sh
 *.jar
 
