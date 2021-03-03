@@ -42,7 +42,6 @@ public class VictoryScreen extends JPanel implements ActionListener {
 	private int timeDecis;
 	
 	private JTextField nameField;
-	@SuppressWarnings("unused")
 	private JButton menu;
 	private JButton leaders;
 	
@@ -169,17 +168,11 @@ public class VictoryScreen extends JPanel implements ActionListener {
 			this.add(leaders);
 			
 			this.add(Box.createVerticalStrut(Block.SIZE / 2));
-			
-			menu = UIFactory.createButton(new ImageIcon("img/ui/menu.png"), new ImageIcon("img/ui/menuPressed.png"));
-			menu.setAlignmentX(CENTER_ALIGNMENT);
-			menu.addActionListener(this);
-			this.add(menu);
-		} else {
-			menu = UIFactory.createButton(new ImageIcon("img/ui/menu.png"), new ImageIcon("img/ui/menuPressed.png"));
-			menu.setAlignmentX(CENTER_ALIGNMENT);
-			menu.addActionListener(this);
-			this.add(menu);
-		}
+		} 
+		menu = UIFactory.createButton(new ImageIcon("img/ui/menu.png"), new ImageIcon("img/ui/menuPressed.png"));
+		menu.setAlignmentX(CENTER_ALIGNMENT);
+		menu.addActionListener(this);
+		this.add(menu);
 		this.add(Box.createVerticalGlue());
 		
 		this.revalidate();
@@ -215,12 +208,14 @@ public class VictoryScreen extends JPanel implements ActionListener {
 		} else if (arg0.getSource() == leaders) {
 			frame.setContentPane(new LeaderboardScreen(frame));
 			SoundEffect.CLICK.play(false);
+			SoundEffect.MUSIC.play(true);
 			frame.repaint();
 			frame.revalidate();
 			postToLeaderboard();
 		} else if (arg0.getSource() == menu) {
 			frame.setContentPane(new MainScreen(frame));
 			SoundEffect.CLICK.play(false);
+			SoundEffect.MUSIC.play(true);
 			frame.repaint();
 			frame.revalidate();
 			postToLeaderboard();

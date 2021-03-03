@@ -430,6 +430,7 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 		} else if (arg0.getSource() == menu) {
 			changeScreen(new MainScreen(frame));
 			SoundEffect.CLICK.play(false);
+			SoundEffect.MUSIC.play(true);
 		} else if (arg0.getSource() == timer) {
 			if (startTime == 0) {
 				xOffset = (int) Math.signum(xOffset) * Math.max(0, (int) (Window.DIMENSIONS.width * (500.0 - System.currentTimeMillis() + openTime) / 500));
