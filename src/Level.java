@@ -134,12 +134,14 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 		mergeCount = UIFactory.createOutlinedLabel("x0", width - 90, 20);
 		add(mergeCount);
 		
-		ImageIcon heartIcon = new ImageIcon(Level.class.getResource("img/ui/hud_heartFull.png"));
-		ImageIcon emptyHeartIcon = new ImageIcon(Level.class.getResource("img/ui/hud_heartEmpty.png"));
-		for (int i = 0; i < 3; i++) {
-			add(UIFactory.createLabel(emptyHeartIcon, (int) (width / 2 + (-1.5 + i) * emptyHeartIcon.getIconWidth()), 70));
-			hearts[i] = UIFactory.createLabel(heartIcon, (int) (width / 2 + (-1.5 + i) * heartIcon.getIconWidth()), 70);
-			add(hearts[i]);
+		if (!timeTrial) {
+			ImageIcon heartIcon = new ImageIcon(Level.class.getResource("img/ui/hud_heartFull.png"));
+			ImageIcon emptyHeartIcon = new ImageIcon(Level.class.getResource("img/ui/hud_heartEmpty.png"));
+			for (int i = 0; i < 3; i++) {
+				add(UIFactory.createLabel(emptyHeartIcon, (int) (width / 2 + (-1.5 + i) * emptyHeartIcon.getIconWidth()), 70));
+				hearts[i] = UIFactory.createLabel(heartIcon, (int) (width / 2 + (-1.5 + i) * heartIcon.getIconWidth()), 70);
+				add(hearts[i]);
+			}
 		}
 		
 		if (levelNumber == 1) {
@@ -265,9 +267,7 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 		g2.drawString("Game Over", (Window.DIMENSIONS.width - (int) bounds.getWidth()) / 2, (Window.DIMENSIONS.height - (int) bounds.getHeight()) / 2 + fm.getAscent());
 		
 		if (System.currentTimeMillis() - fadeTime >= 7000 && menu == null) {
-//%			ImageIcon menuIcon = new ImageIcon("img/ui/menu.png");
 			ImageIcon menuIcon = new ImageIcon(Level.class.getResource("img/ui/menu.png"));
-//%			ImageIcon menuPressedIcon = new ImageIcon("img/ui/menuPressed.png");
 			ImageIcon menuPressedIcon = new ImageIcon(Level.class.getResource("img/ui/menuPressed.png"));
 			menu = UIFactory.createButton(menuIcon, menuPressedIcon);
 			menu.setBounds((Window.DIMENSIONS.width - menuIcon.getIconWidth()) / 2, Window.DIMENSIONS.height - 200, menuIcon.getIconWidth(), menuIcon.getIconHeight());
@@ -419,11 +419,18 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 			changeLevel(levelNumber + 1);
 			SoundEffect.CLICK.play(false);
 		} else if (arg0.getSource() == reset) {
-			loseHeart();
+			if (!timeTrial) {
+				loseHeart();
+			}
+			SoundEffect.DEATH.play(false);
+			resetLevel();
 			SoundEffect.CLICK.play(false);
 		} else if (arg0.getSource() == exit) {
 			if (theme.getBackgroundNoise() != null) {
 				theme.getBackgroundNoise().stop();
+			}
+			if (last instanceof LevelScreen) {
+				((LevelScreen) last).playBackgroundNoise();
 			}
 			changeScreen(last);
 			SoundEffect.CLICK.play(false);
@@ -461,7 +468,11 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 				pickUpPowerUp();
 				triggerButtons();
 				if (player.isOutOfBounds(map) && numHearts > 0) {
-					loseHeart();
+					if (!timeTrial) {
+						loseHeart();
+					}
+					SoundEffect.DEATH.play(false);
+					resetLevel();
 				}
 				if (player.reachedGoal(map)) {
 					complete = true;
@@ -544,7 +555,6 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 	private void loseHeart() {
 		numHearts--;
 		remove(hearts[numHearts]);
-		SoundEffect.DEATH.play(false);
 		if (numHearts == 0) {
 			fadeTime = System.currentTimeMillis();
 			this.removeAll();
@@ -553,8 +563,6 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 				theme.getBackgroundNoise().stop();
 			}
 			SoundEffect.GAME_OVER.play(false);
-		} else {
-			resetLevel();
 		}
 	}
 
@@ -658,7 +666,7 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 		Action shiftDown = new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (player.getState() == Player.NORMAL) {
+				if (player.getMovement() == Movement.STILL && !player.isFalling() && player.getState() == Player.NORMAL) {
 					if (storedPowerUps[2] > 0) {
 						ArrayList<PlayerBlock> mergedBlocks = player.merge(map);
 						if (mergedBlocks.size() > 0) {

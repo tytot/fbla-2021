@@ -1,5 +1,5 @@
 ### Post-Processors ###
-ConnectionDetails.java
+Connection.java
 lib/
 res/
 proguard/

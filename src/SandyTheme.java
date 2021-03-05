@@ -34,12 +34,15 @@ public class SandyTheme extends Theme {
 			Point p = particles.get(i);
 			g2.fillRect(p.x - WeatherConstants.SAND_RADIUS, p.y - WeatherConstants.SAND_RADIUS, 2 * WeatherConstants.SAND_RADIUS, 2 * WeatherConstants.SAND_RADIUS);
 			p.translate(WeatherConstants.SAND_SPEED_X, WeatherConstants.SAND_SPEED_Y);
-			if (p.x >= Window.DIMENSIONS.width
-				|| p.y >= Window.DIMENSIONS.height
-				|| map.getBlocks()[p.y / Block.SIZE][p.x / Block.SIZE].isSolid()
-				|| player.intersectsPoint(p)) {
+			if (p.y >= Window.DIMENSIONS.height || p.x >= Window.DIMENSIONS.width) {
 				particles.remove(i);
 				i--;
+			} else if (player != null && map != null) {
+				if (map.getBlocks()[p.y / Block.SIZE][p.x / Block.SIZE].isSolid()
+				|| player.intersectsPoint(p)) {
+					particles.remove(i);
+					i--;
+				}
 			}
 		}
 	}

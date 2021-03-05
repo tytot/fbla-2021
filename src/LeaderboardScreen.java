@@ -16,6 +16,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.SwingConstants;
+import javax.swing.SwingWorker;
 
 import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonArray;
@@ -28,6 +29,9 @@ public class LeaderboardScreen extends JPanel implements ActionListener {
 	private static final long serialVersionUID = 861795915282271507L;
 	private JFrame frame;
 	private JButton exit;
+	private JLabel loading;
+	
+	public static final int MAX_ENTRIES = 100;
 
 	LeaderboardScreen(JFrame frame) {
 		this.frame = frame;
@@ -39,79 +43,88 @@ public class LeaderboardScreen extends JPanel implements ActionListener {
 		add(exit);
 		
 		ImageIcon loadingIcon = new ImageIcon(LeaderboardScreen.class.getResource("img/ui/loading.gif"));
-		JLabel loading = UIFactory.createLabel(loadingIcon, (Window.DIMENSIONS.width - loadingIcon.getIconWidth()) / 2, (Window.DIMENSIONS.height - loadingIcon.getIconHeight()) / 2);
+		loading = UIFactory.createLabel(loadingIcon, (Window.DIMENSIONS.width - loadingIcon.getIconWidth()) / 2, (Window.DIMENSIONS.height - loadingIcon.getIconHeight()) / 2);
 		add(loading);
 		
-		LeaderboardFetcher fetcher = new LeaderboardFetcher();
-		fetcher.execute();
-		
-		remove(loading);
-		JPanel container = new JPanel();
-		container.setOpaque(false);
-		container.setLayout(new BoxLayout(container, BoxLayout.Y_AXIS));
-		container.setBounds(0, 0, frame.getWidth(), frame.getHeight());
-		container.add(Box.createVerticalStrut(Block.SIZE * 2));
-		JLabel levelsLabel = UIFactory.createLabel("img/ui/leaderboardPressed.png");
-		levelsLabel.setAlignmentX(CENTER_ALIGNMENT);
-		container.add(levelsLabel);
-		container.add(Box.createVerticalStrut(Block.SIZE));
-		JLabel leaderboardHeader = UIFactory.createLabel("img/ui/leaderboardHeader.png");
-		leaderboardHeader.setAlignmentX(CENTER_ALIGNMENT);
-		container.add(leaderboardHeader);
-		container.add(Box.createVerticalStrut(Block.SIZE / 2));
-		
-		JPanel list = new JPanel();
-		list.setLayout(new BoxLayout(list, BoxLayout.Y_AXIS));
-		list.setOpaque(false);
-		try {
-			JsonArray array = Json.parse(fetcher.get()).asArray();
-			int numEntries = array.size();
-			if (numEntries == 0) {
-				JPanel empty = new JPanel();
-				empty.setBackground(new Color(0, 0, 0, 25));
-				JLabel nothing = UIFactory.createLabel("Nothing here yet...", 28);
-				empty.add(nothing);
-				empty.setAlignmentX(CENTER_ALIGNMENT);
-				list.add(empty);
-			} else {
-				for (int i = 0; i < numEntries; i++) {
-					JsonObject obj = array.get(i).asObject();
-					String name = obj.getString("name", "Player");
-					int timeInt = obj.getInt("time", 59999);
-					int minutes = timeInt / 600, seconds = (timeInt % 600) / 10, decis = (timeInt % 600) % 10;
-					String time = minutes + ":" + String.format("%02d", seconds) + "." + decis;
+		class LeaderboardFetcher extends SwingWorker<String, Object> {
+			@Override
+			public String doInBackground() {
+				return Connection.fetchLeaderboard();
+			}
+
+			@Override
+			protected void done() {
+				try {
+					remove(loading);
+					JPanel container = new JPanel();
+					container.setOpaque(false);
+					container.setLayout(new BoxLayout(container, BoxLayout.Y_AXIS));
+					container.setBounds(0, 0, frame.getWidth(), frame.getHeight());
+					container.add(Box.createVerticalStrut(Block.SIZE * 2));
+					JLabel levelsLabel = UIFactory.createLabel("img/ui/leaderboardPressed.png");
+					levelsLabel.setAlignmentX(CENTER_ALIGNMENT);
+					container.add(levelsLabel);
+					container.add(Box.createVerticalStrut(Block.SIZE));
+					JLabel leaderboardHeader = UIFactory.createLabel("img/ui/leaderboardHeader.png");
+					leaderboardHeader.setAlignmentX(CENTER_ALIGNMENT);
+					container.add(leaderboardHeader);
+					container.add(Box.createVerticalStrut(Block.SIZE / 2));
 					
-					JPanel entry = createLeaderboardEntry(i + 1, name, time);
-					entry.setAlignmentX(CENTER_ALIGNMENT);
-					list.add(entry);
+					JPanel list = new JPanel();
+					list.setLayout(new BoxLayout(list, BoxLayout.Y_AXIS));
+					list.setOpaque(false);
+					
+					JsonArray array = Json.parse(get()).asArray();
+					int numEntries = array.size();
+					if (numEntries == 0) {
+						JPanel empty = new JPanel();
+						empty.setBackground(new Color(0, 0, 0, 25));
+						JLabel nothing = UIFactory.createLabel("Nothing here yet...", 28);
+						empty.add(nothing);
+						empty.setAlignmentX(CENTER_ALIGNMENT);
+						list.add(empty);
+					} else {
+						for (int i = 0; i < Math.min(numEntries, MAX_ENTRIES); i++) {
+							JsonObject obj = array.get(i).asObject();
+							String name = obj.getString("name", "Player");
+							int timeInt = obj.getInt("time", 59999);
+							int minutes = timeInt / 600, seconds = (timeInt % 600) / 10, decis = (timeInt % 600) % 10;
+							String time = minutes + ":" + String.format("%02d", seconds) + "." + decis;
+							
+							JPanel entry = createLeaderboardEntry(i + 1, name, time);
+							entry.setAlignmentX(CENTER_ALIGNMENT);
+							list.add(entry);
+						}
+					}
+					JScrollPane scroller = new JScrollPane(list, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+					scroller.setBorder(BorderFactory.createLineBorder(new Color(0, 0, 0, 25), 16, true));
+					scroller.getVerticalScrollBar().setUI(new KenneyScrollBarUI());
+					scroller.getVerticalScrollBar().setBackground(new Color(0, 0, 0, 25));
+					scroller.getVerticalScrollBar().setUnitIncrement(20);
+					scroller.setAlignmentX(CENTER_ALIGNMENT);
+					scroller.setOpaque(false);
+					scroller.getViewport().setOpaque(false);
+					scroller.setMaximumSize(new Dimension(1080, scroller.getPreferredSize().height));
+					container.add(scroller);
+					container.add(Box.createVerticalStrut(Block.SIZE * 2));
+					add(container);
+					
+					revalidate();
+					repaint();
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
 			}
-		} catch (Exception e) {
-			e.printStackTrace();
 		}
-		JScrollPane scroller = new JScrollPane(list, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-		scroller.setBorder(BorderFactory.createLineBorder(new Color(0, 0, 0, 25), 16, true));
-		scroller.getVerticalScrollBar().setUI(new KenneyScrollBarUI());
-		scroller.getVerticalScrollBar().setBackground(new Color(0, 0, 0, 25));
-		scroller.getVerticalScrollBar().setUnitIncrement(20);
-		scroller.setAlignmentX(CENTER_ALIGNMENT);
-		scroller.setOpaque(false);
-		scroller.getViewport().setOpaque(false);
-		scroller.setMaximumSize(new Dimension(720, scroller.getPreferredSize().height));
-		container.add(scroller);
-		container.add(Box.createVerticalStrut(Block.SIZE * 2));
-		add(container);
-		
-		revalidate();
-		repaint();
+		(new LeaderboardFetcher()).execute();
 	}
 	
 	private JPanel createLeaderboardEntry(int rank, String name, String time) {
 		JPanel entry = new JPanel();
 		entry.setLayout(null);
-		entry.setPreferredSize(new Dimension(720, 70));
-		entry.setMinimumSize(new Dimension(720, 70));
-		entry.setMaximumSize(new Dimension(720, 70));
+		entry.setPreferredSize(new Dimension(1080, 70));
+		entry.setMinimumSize(new Dimension(1080, 70));
+		entry.setMaximumSize(new Dimension(1080, 70));
 		entry.setBackground(new Color(0, 0, 0, 25));
 		
 		entry.add(UIFactory.createOutlinedLabel(rank + "", 5, 10));
@@ -122,12 +135,12 @@ public class LeaderboardScreen extends JPanel implements ActionListener {
 		} else if (rank == 3) {
 			entry.add(UIFactory.createLabel("img/ui/bronze_medal.png", 60, 0));
 		}
-		JLabel nameLabel = UIFactory.createLabel(name, 36, new Rectangle(140, 10, 275, 50));
+		JLabel nameLabel = UIFactory.createLabel(name, 36, new Rectangle(140, 10, 610, 50));
 		nameLabel.setHorizontalAlignment(SwingConstants.LEFT);
 		entry.add(nameLabel);
 		
 		JLabel timeLabel = UIFactory.createOutlinedLabel(time);
-		timeLabel.setBounds(600 - timeLabel.getPreferredSize().width, 10, timeLabel.getPreferredSize().width, timeLabel.getPreferredSize().height);
+		timeLabel.setBounds(960 - timeLabel.getPreferredSize().width, 10, timeLabel.getPreferredSize().width, timeLabel.getPreferredSize().height);
 		entry.add(timeLabel);
 		
 		return entry;

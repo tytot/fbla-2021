@@ -56,12 +56,11 @@ public class MainScreen extends JPanel implements ActionListener {
 			frame.setContentPane(level);
 		} else if (e.getSource() == levels) {
 			frame.setContentPane(new LevelScreen(frame));
-		} else if (e.getSource() == leaders) {
+		} else if (e.getSource() == leaders) { 
 			frame.setContentPane(new LeaderboardScreen(frame));
 		} else if (e.getSource() == tutorial) {
 			frame.setContentPane(new TutorialScreen(frame));
 		}
-
 		SoundEffect.CLICK.play(false);
 		frame.revalidate();
 		frame.repaint();

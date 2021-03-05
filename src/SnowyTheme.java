@@ -31,11 +31,15 @@ public class SnowyTheme extends Theme {
 			Point p = particles.get(i);
 			g2.fillOval(p.x - WeatherConstants.SNOW_RADIUS, p.y - WeatherConstants.SNOW_RADIUS, 2 * WeatherConstants.SNOW_RADIUS, 2 * WeatherConstants.SNOW_RADIUS);
 			p.translate(0, WeatherConstants.SNOW_SPEED);
-			if (p.y >= Window.DIMENSIONS.height
-				|| map.getBlocks()[p.y / Block.SIZE][p.x / Block.SIZE].isSolid()
-				|| player.intersectsPoint(p)) {
+			if (p.y >= Window.DIMENSIONS.height) {
 				particles.remove(i);
 				i--;
+			} else if (player != null && map != null) {
+				if (map.getBlocks()[p.y / Block.SIZE][p.x / Block.SIZE].isSolid()
+				|| player.intersectsPoint(p)) {
+					particles.remove(i);
+					i--;
+				}
 			}
 		}
 	}

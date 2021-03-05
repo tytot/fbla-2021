@@ -35,14 +35,16 @@ public class RainyTheme extends Theme {
 			if (p.y - WeatherConstants.RAIN_LENGTH >= Window.DIMENSIONS.height) {
 				particles.remove(i);
 				i--;
-			} else if ((map.isValidBlock(p.x / Block.SIZE, p.y / Block.SIZE)
+			} else if (player != null && map != null) {
+				if ((map.isValidBlock(p.x / Block.SIZE, p.y / Block.SIZE)
 				&& map.getBlocks()[p.y / Block.SIZE][p.x / Block.SIZE].isSolid())
 				|| player.intersectsPoint(p)) {
-				p.setLocation(p.x, p.y / Block.SIZE * Block.SIZE);
-				g2.drawLine(p.x - 6, p.y - 6, p.x - 4, p.y - 4);
-				g2.drawLine(p.x + 4, p.y - 4, p.x + 6, p.y - 6);
-				particles.remove(i);
-				i--;
+					p.setLocation(p.x, p.y / Block.SIZE * Block.SIZE);
+					g2.drawLine(p.x - 6, p.y - 6, p.x - 4, p.y - 4);
+					g2.drawLine(p.x + 4, p.y - 4, p.x + 6, p.y - 6);
+					particles.remove(i);
+					i--;
+				}
 			}
 		}
 	}

@@ -26,7 +26,22 @@ class Window {
 		    @Override
 		    public void windowClosing(WindowEvent event) {
 		    	if (frame.getContentPane() instanceof VictoryScreen) {
-					((VictoryScreen) frame.getContentPane()).postToLeaderboard();
+		    		VictoryScreen vs = (VictoryScreen) frame.getContentPane();
+					class LeaderboardPoster extends SwingWorker<String, Object> {
+						@Override
+						public String doInBackground() {
+							return Connection.postToLeaderboard(vs.getName(), vs.getTimeDecis());
+						}
+						@Override
+						protected void done() {
+							try {
+								System.out.println(get());
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+						}
+					}
+					(new LeaderboardPoster()).execute();
 		    	}
 				System.exit(0);
 		    }
@@ -40,7 +55,7 @@ class Window {
 	}
 
 	public static void main(String[] args) {
-		System.setProperty("sun.java2d.uiScale", "1");
+//		System.setProperty("sun.java2d.uiScale.enabled", "false");
 		
 		javax.swing.SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
