@@ -2,8 +2,7 @@
 import javax.sound.sampled.*;
 
 public enum SoundEffect {
-	
-	MUSIC("audio/bg.wav", -10f),
+
 	CLICK("audio/click.wav"),
 	PICKUP("audio/pickup.wav"),
 	GROW("audio/grow.wav"),
@@ -31,17 +30,23 @@ public enum SoundEffect {
 			clip = AudioSystem.getClip();
 			clip.open(stream);
 		} catch (Exception e) {
-			e.printStackTrace();
+//			e.printStackTrace();
 		}
 	}
 	
 	SoundEffect(String soundFileName, float gain) {
 		this(soundFileName);
+		if (clip == null) {
+			return;
+		}
 		FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
 		gainControl.setValue(gain);
 	}
 
 	public void play(boolean loop) {
+		if (clip == null) {
+			return;
+		}
 		if (clip.isRunning()) {
 			clip.stop();
 		}
@@ -53,6 +58,9 @@ public enum SoundEffect {
 	}
 
 	public void stop() {
+		if (clip == null) {
+			return;
+		}
 		clip.stop();
 		clip.setFramePosition(0);
 	}

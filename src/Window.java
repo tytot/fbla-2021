@@ -5,7 +5,7 @@ import java.awt.event.WindowEvent;
 
 import javax.swing.*;
 
-class Window {
+public class Window {
 	private JFrame frame;
 	
 	public static final Dimension DIMENSIONS = new Dimension(33 * Block.SIZE, 24 * Block.SIZE);
@@ -46,8 +46,6 @@ class Window {
 				System.exit(0);
 		    }
 		});
-		
-		SoundEffect.MUSIC.play(true);
 	}
 
 	public static void runGUI() {
@@ -55,8 +53,8 @@ class Window {
 	}
 
 	public static void main(String[] args) {
-//		System.setProperty("sun.java2d.uiScale.enabled", "false");
-		
+		System.setProperty("sun.java2d.uiScale.enabled", "false");
+
 		javax.swing.SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				runGUI();

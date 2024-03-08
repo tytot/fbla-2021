@@ -259,7 +259,6 @@ public class VictoryScreen extends JPanel implements ActionListener {
 		} else if (source == menu) {
 			frame.setContentPane(new MainScreen(frame));
 		}
-		SoundEffect.MUSIC.play(true);
 		frame.revalidate();
 		frame.repaint();
 	}

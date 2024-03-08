@@ -8,7 +8,6 @@ obfuscator*
 mapping.txt
 process.sh
 *.jar
-!ThePuzzledCube.jar
 
 ### Eclipse ###
 .metadata

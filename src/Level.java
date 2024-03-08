@@ -437,7 +437,6 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 		} else if (arg0.getSource() == menu) {
 			changeScreen(new MainScreen(frame));
 			SoundEffect.CLICK.play(false);
-			SoundEffect.MUSIC.play(true);
 		} else if (arg0.getSource() == timer) {
 			if (startTime == 0) {
 				xOffset = (int) Math.signum(xOffset) * Math.max(0, (int) (Window.DIMENSIONS.width * (500.0 - System.currentTimeMillis() + openTime) / 500));
@@ -496,7 +495,6 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 				
 				SoundEffect.SUCCESS.play(false);
 				if (!timeTrial && levelNumber == 24) {
-					SoundEffect.MUSIC.stop();
 					if (theme.getBackgroundNoise() != null) {
 						theme.getBackgroundNoise().stop();
 					}
@@ -558,7 +556,6 @@ public class Level extends JPanel implements MouseListener, MouseMotionListener,
 		if (numHearts == 0) {
 			fadeTime = System.currentTimeMillis();
 			this.removeAll();
-			SoundEffect.MUSIC.stop();
 			if (theme.getBackgroundNoise() != null) {
 				theme.getBackgroundNoise().stop();
 			}
