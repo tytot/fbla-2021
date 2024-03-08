@@ -1,7 +1,7 @@
 # The Puzzled Cube
 Made for the FBLA Computer Game and Simulation Programming event 2020-21 by Tyler Lin, Aditya Balasubramanian, and Aaron Chen
 ## Installation
-Download game.jar and run it.
+Download ThePuzzledCube.jar and run it.
 ## Instructions
 Press the left arrow key to move left.
 Press the right arrow key to move right.
